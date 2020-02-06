@@ -57,7 +57,7 @@ class Zanox extends AbstractNetwork implements Network
     /**
      * @inheritDoc
      */
-    public function searchProducts(?string $query = null, $languages = null, ?int $limit = null)
+    public function searchProducts(?string $query = null, ?array $advertisers = null, ?array $languages = null, ?int $limit = null, ?string $trackingCode = null)
     {
         // https://developer.zanox.com/web/guest/publisher-api-2011/get-products
 

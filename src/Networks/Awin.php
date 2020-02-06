@@ -55,9 +55,14 @@ class Awin extends AbstractNetwork implements Network
     /**
      * @inheritDoc
      */
-    public function searchProducts(?string $query = null, $languages = null, ?int $limit = null)
+    public function searchProducts(?string $query = null, ?array $advertisers = null, ?array $languages = null, ?int $limit = null, ?string $trackingCode = null)
     {
+        // fixme: consider $trackingCode
+
         // https://wiki.awin.com/index.php/Product_Feeds_for_Publishers
+
+        $feedsTable = Config::get('affiliate.db.tables.feeds');
+        $productsTable = Config::get('affiliate.db.tables.products');
 
         $queryBuilder = Product::query();
 
@@ -70,16 +75,25 @@ class Awin extends AbstractNetwork implements Network
                 });
         }
 
-        if (!is_null($languages)){
+        if (!is_null($advertisers)){
             $queryBuilder
-                ->whereExists(function (\Illuminate\Database\Query\Builder $query) use ($languages) {
-                    $feedsTable = Config::get('affiliate.db.tables.feeds');
-                    $productsTable = Config::get('affiliate.db.tables.products');
+                ->whereExists(function (\Illuminate\Database\Query\Builder $query) use ($productsTable, $feedsTable, $advertisers) {
                     $query
                         ->select(DB::raw(1))
                         ->from($feedsTable)
                         ->whereRaw("$productsTable.feed_id = $feedsTable.id")
-                        ->whereIn('language', Arr::wrap($languages));
+                        ->whereIn('advertiser_id', $advertisers);
+                });
+        }
+
+        if (!is_null($languages)){
+            $queryBuilder
+                ->whereExists(function (\Illuminate\Database\Query\Builder $query) use ($productsTable, $feedsTable, $languages) {
+                    $query
+                        ->select(DB::raw(1))
+                        ->from($feedsTable)
+                        ->whereRaw("$productsTable.feed_id = $feedsTable.id")
+                        ->whereIn('language', $languages);
                 });
         }
 

@@ -28,8 +28,12 @@ class Amazon extends AbstractNetwork implements Network
     /**
      * @inheritDoc
      */
-    public function searchProducts(?string $query = null, $languages = null, ?int $limit = null)
+    public function searchProducts(?string $query = null, ?array $advertisers = null, ?array $languages = null, ?int $limit = null, ?string $trackingCode = null)
     {
+        // fixme: consider
+        //  $languages
+        //  $limit
+        //  $trackingCode
         try {
             $response = AmazonProduct::search('All', $query , 1);
         }
