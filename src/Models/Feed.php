@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Config;
  * @property bool joined
  * @property string region
  * @property string language
+ * @property DateTime|null products_updated_at
  * @property DateTime|null imported_at
  */
 class Feed extends Model
@@ -23,6 +24,7 @@ class Feed extends Model
         'joined',
         'region',
         'language',
+        'products_updated_at',
         'imported_at',
     ];
 
@@ -31,6 +33,7 @@ class Feed extends Model
     ];
 
     protected $dates = [
+        'products_updated_at',
         'imported_at',
     ];
 

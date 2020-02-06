@@ -32,6 +32,7 @@ class CreateAffiliateFeedsTable extends Migration
                 $table->string('region');
                 $table->char('language', 2);
                 $table->dateTime('imported_at')->nullable();
+                $table->dateTime('products_updated_at')->nullable();
                 $table->timestamps();
             });
     }

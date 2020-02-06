@@ -44,7 +44,7 @@ class ServiceProvider extends BaseServiceProvider
             ->daily();
         $schedule
             ->command('affiliate:products')
-            ->daily();
+            ->hourly();
     }
 
     /**

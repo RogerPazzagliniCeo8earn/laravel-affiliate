@@ -12,16 +12,36 @@ return [
         ],
     ],
     'db' => [
-        'connection' => 'sqlite',
+        'connection' => 'mysql',
         'tables' => [
             'feeds' => 'feeds',
             'products' => 'products',
         ],
     ],
 
-    /*
-     * The path where to store product feed files.
-     * If set to null, storage_path('affiliate/product_feed') will be used.
-     */
-    'product_feed_directory_path' => null,
+    'product_feeds' => [
+        /*
+         * null|string
+         * The path where to store product feed files.
+         * If set to null, storage_path('affiliate/product_feed') will be used.
+         */
+        'directory_path' => null,
+
+        /*
+         * bool
+         */
+        'only_joined' => true,
+
+        /*
+         * null|array
+         * Example: ['US', 'GB', 'IT']
+         */
+        'regions' => null,
+
+        /*
+         * null|array
+         * Example: ['en', 'it']
+         */
+        'languages' => null,
+    ],
 ];

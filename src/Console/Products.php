@@ -3,7 +3,10 @@
 namespace SoluzioneSoftware\LaravelAffiliate\Console;
 
 use Chumper\Zipper\Facades\Zipper;
-use GuzzleHttp\Client;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\File;
 use Maatwebsite\Excel\Facades\Excel;
 use SoluzioneSoftware\LaravelAffiliate\Imports\ProductsImport;
@@ -30,26 +33,63 @@ class Products extends Command
      */
     public function handle()
     {
-        $feeds = Feed::query()
-            ->where('joined', true) // fixme: put to config
-            ->whereIn('region', ['it', 'en']) // fixme: put to config
-            ->whereIn('language', ['it', 'en']) // fixme: put to config
-            ->get();
+        $feeds = $this->getFeeds();
 
-        /** @var Feed $feed */
-        foreach ($feeds as $feed) {
-            $fileName = "feed_{$feed->id}";
-            $this->downloadFeed($feed, $this->path("$fileName.zip"));
-            $this->extract($this->path("$fileName.zip"), $this->path($fileName));
-            $this->deleteFile($this->path("$fileName.zip"));
+        $this->info("Found {$feeds->count()} feeds to update.");
 
-            foreach (glob("{$this->path($fileName)}/*.csv") as $file) {
-                $this->importProducts($feed, $file);
-            }
+        if ($feeds->count() === 0){
+            return;
+        }
+
+        $fileName = "products";
+        $this->downloadProducts($feeds, $this->path("$fileName.zip"));
+        $this->extract($this->path("$fileName.zip"), $this->path($fileName));
+        $this->deleteFile($this->path("$fileName.zip"));
+
+        foreach (glob("{$this->path($fileName)}/*.csv") as $file) {
+            $this->importProducts($feeds, $file);
+
+            $feeds->each(function (Feed $feed){
+                $feed->update(['products_updated_at' => Date::now()]);
+            });
         }
     }
 
-    private function downloadFeed(Feed $productFeed, string $path)
+    private function getFeeds()
+    {
+        $query = Feed::query();
+
+        if (Config::get('affiliate.product_feeds.only_joined')){
+            $query->where('joined', true);
+        }
+
+        if (Config::get('affiliate.product_feeds.only_joined')){
+            $query->where('joined', true);
+        }
+
+        if (!is_null($regions = Config::get('affiliate.product_feeds.regions'))){
+            $query->whereIn('region', $regions);
+        }
+
+        if (!is_null($languages = Config::get('affiliate.product_feeds.languages'))){
+            $query->whereIn('language', $languages);
+        }
+
+        // consider updating only new feeds
+        $query->where(function (Builder $query){
+            $query
+                ->whereNull('products_updated_at')
+                ->orWhere(function (Builder $query){
+                    $query
+                        ->whereNotNull('imported_at')
+                        ->whereRaw('imported_at >= products_updated_at');
+                });
+        });
+
+        return $query->get();
+    }
+
+    private function downloadProducts(Collection $feeds, string $path)
     {
         $columns = [
             'product_name',
@@ -58,13 +98,15 @@ class Products extends Command
             'merchant_image_url',
             'search_price',
             'currency',
+            'data_feed_id',
+            'last_updated',
         ];
         $url = "https://productdata.awin.com"
             . "/datafeed/download"
             . "/apikey/{$this->apiKey()}"
-            . "/fid/{$productFeed->feed_id}"
+            . "/fid/" . implode(',', $feeds->pluck('feed_id')->toArray())
             . "/format/csv"
-            . "/language/{$productFeed->language}"
+            . "/language/any"
             . "/delimiter/%2C" // comma
             . "/compression/zip"
             . "/columns/" . implode('%2C', $columns);
@@ -72,9 +114,11 @@ class Products extends Command
         $this->client->get($url, ['sink' => $path]);
     }
 
-    private function importProducts(Feed $feed, string $path)
+    private function importProducts(Collection $feeds, string $path)
     {
-        Excel::import(new ProductsImport($feed), $path);
+//        fixme: delete old
+        $dateFilter = Date::now()->subHour(); // see ServiceProvider@console
+        Excel::import(new ProductsImport($feeds, $dateFilter), $path);
     }
 
     protected function extract(string $source, string $destination)

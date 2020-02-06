@@ -2,7 +2,11 @@
 
 namespace SoluzioneSoftware\LaravelAffiliate\Imports;
 
+use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Date;
+use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Concerns\OnEachRow;
 use Maatwebsite\Excel\Concerns\WithChunkReading;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
@@ -13,16 +17,29 @@ use SoluzioneSoftware\LaravelAffiliate\Models\Feed;
 class ProductsImport implements WithHeadingRow, OnEachRow, WithChunkReading
 {
     /**
-     * @var Feed
+     * @var Collection
      */
-    private $feed;
+    private $feeds;
 
     /**
-     * @param Feed $feed
+     * @var Carbon
      */
-    public function __construct(Feed $feed)
+    private $lastUpdatedFilter;
+
+    /**
+     * @var Collection
+     */
+    private $products;
+
+    /**
+     * @param Collection $feeds
+     * @param Carbon $lastUpdatedFilter
+     */
+    public function __construct(Collection $feeds, Carbon $lastUpdatedFilter)
     {
-        $this->feed = $feed;
+        $this->feeds = $feeds;
+        $this->lastUpdatedFilter = $lastUpdatedFilter;
+        $this->products = Product::all(['product_id'])->pluck('product_id')->toArray();
     }
 
     /**
@@ -32,7 +49,21 @@ class ProductsImport implements WithHeadingRow, OnEachRow, WithChunkReading
     {
         $data = $row->toArray();
 
-        $data['feed_id'] = $this->feed->id;
+        // skip if not updated and already imported
+        if ($this->lastUpdatedFilter->greaterThan(Date::createFromTimestamp($data['last_updated']))){ // fixme: consider tz
+            if (in_array($data['aw_product_id'], $this->products)){
+                Log::debug("ProductsImport: Skip row #{$row->getIndex()}");
+                return;
+            }
+        }
+
+        /** @var Feed|null $feed */
+        $feed = $this->feeds->whereStrict('feed_id', $data['data_feed_id'])->first();
+        if (is_null($feed)){
+            Log::warning("Products row not valid. data_feed_id: {$data['data_feed_id']}, aw_product_id: {$data['aw_product_id']}");
+            return;
+        }
+        $data['feed_id'] = $feed->id;
         $data['product_id'] = $data['aw_product_id'];
         $data['title'] = $data['product_name'];
         $data['image_url'] = $data['merchant_image_url'];
