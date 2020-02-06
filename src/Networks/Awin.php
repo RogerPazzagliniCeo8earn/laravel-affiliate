@@ -5,14 +5,17 @@ namespace SoluzioneSoftware\LaravelAffiliate\Networks;
 
 
 use Carbon\Carbon;
+use DateTime;
 use Exception;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use SoluzioneSoftware\LaravelAffiliate\AbstractNetwork;
 use SoluzioneSoftware\LaravelAffiliate\Contracts\Network;
 use SoluzioneSoftware\LaravelAffiliate\Models\Product;
+use SoluzioneSoftware\LaravelAffiliate\Objects\Response;
 use SoluzioneSoftware\LaravelAffiliate\Objects\Transaction;
 
 class Awin extends AbstractNetwork implements Network
@@ -45,11 +48,34 @@ class Awin extends AbstractNetwork implements Network
         return array_merge(parent::getHeaders(), ['Authorization' => 'Bearer ' . $this->apiToken]);
     }
 
-    public function getTransactions(array $params = [])
+    /**
+     * @inheritDoc
+     */
+    public function getTransactions(?DateTime $startDate = null, ?DateTime $endDate = null)
     {
-        // https://wiki.awin.com/index.php/API_get_transactions_list
+        $status=false;
+        $message="";
+        $transactions = new Collection();
+        try{
+            $this->requestParams = ['publishers',$this->publisherId,'transactions'];
+            $this->queryParams = [
+                'startDate'=>$startDate->format('Y-m-d\TH:i:s'),
+                'endDate'=>$endDate->format('Y-m-d\TH:i:s'),
+                //   'timezone'=>'UTC',
+                //   'status'=>'pending',
+            ];
 
-        throw new Exception('Not implemented');
+            $response=$this->callApi();
+            if ($response->getStatusCode()==200){
+                $status = true;
+                foreach (json_decode($response->getBody()) as $transaction) {
+                    $transactions->push($this->transactionFromJson($transaction));
+                }
+            }
+        }catch (Exception $e){
+            $message=$e->getMessage();
+        }
+        return new Response($status,$message,$transactions);
     }
 
     /**
@@ -103,9 +129,11 @@ class Awin extends AbstractNetwork implements Network
 
         $products = $queryBuilder->get();
 
-        return $products->map(function (Product $product){
+        $collection = $products->map(function (Product $product){
             return $this->productFromJson($product->toArray());
         });
+
+        return new Response(true, null, $collection);
     }
 
     protected function transactionFromJson(array $transaction)
@@ -129,6 +157,7 @@ class Awin extends AbstractNetwork implements Network
             $product['image_url'],
             floatval($product['price']),
             $product['currency'],
+            '', // fixme:
             $product
         );
     }

@@ -4,15 +4,17 @@
 namespace SoluzioneSoftware\LaravelAffiliate\Contracts;
 
 
-use Illuminate\Support\Collection;
+use DateTime;
+use SoluzioneSoftware\LaravelAffiliate\Objects\Response;
 
 interface Network
 {
     /**
-     * @param array $params
-     * @return Collection
+     * @param DateTime|null $startDate
+     * @param DateTime|null $endDate
+     * @return Response
      */
-    public function getTransactions(array $params = []);
+    public function getTransactions(?DateTime $startDate = null, ?DateTime $endDate = null);
 
     /**
      * @param string|null $query
@@ -20,7 +22,7 @@ interface Network
      * @param array|null $languages
      * @param int|null $limit
      * @param string|null $trackingCode
-     * @return Collection Collection of Product objects
+     * @return Response
      */
     public function searchProducts(?string $query = null, ?array $advertisers = null, ?array $languages = null, ?int $limit = null, ?string $trackingCode = null);
 }

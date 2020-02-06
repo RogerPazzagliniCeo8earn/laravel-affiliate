@@ -14,7 +14,7 @@ class Product
     /**
      * @var string
      */
-    public $title;
+    public $name;
 
     /**
      * @var string|null
@@ -37,19 +37,24 @@ class Product
     public $currency;
 
     /**
+     * @var string
+     */
+    public $link;
+
+    /**
      * @var array
      */
     public $original;
 
-
-    public function __construct(string $id, string $title, ?string $description, ?string $image, float $price, string $currency, array $original)
+    public function __construct(string $id, string $name, ?string $description, ?string $image, float $price, string $currency, string $link, array $original)
     {
         $this->id = $id;
-        $this->title = $title;
+        $this->name = $name;
         $this->description = $description;
         $this->image = $image;
         $this->price = $price;
         $this->currency = $currency;
+        $this->link = $link;
         $this->original = $original;
     }
 }

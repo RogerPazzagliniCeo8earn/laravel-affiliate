@@ -5,6 +5,7 @@ namespace SoluzioneSoftware\LaravelAffiliate;
 
 
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\GuzzleException;
 use Psr\Http\Message\ResponseInterface;
 use SoluzioneSoftware\LaravelAffiliate\Objects\Product;
 use SoluzioneSoftware\LaravelAffiliate\Objects\Transaction;
@@ -20,6 +21,11 @@ abstract class AbstractNetwork
      * @var array
      */
     protected $requestParams = [];
+
+    /**
+     * @var array
+     */
+    protected $queryParams = [];
 
     /**
      * @var string
@@ -38,17 +44,21 @@ abstract class AbstractNetwork
 
     /**
      * @return ResponseInterface
+     * @throws GuzzleException
      */
     protected function callApi()
     {
         $uri = $this->baseUrl . $this->getEndPoint();
+        foreach ($this->getRequest() as $rp){
+            $uri.=$rp.$this->getEndPoint();
+        }
 
         $options = [
             'query' => $this->getParams(),
             'headers' => $this->getHeaders(),
         ];
 
-        return $this->client->get($uri, $options);
+        return $this->client->request('GET', $uri, $options);
     }
 
     protected function getHeaders()
@@ -58,12 +68,17 @@ abstract class AbstractNetwork
 
     protected function getParams()
     {
-        return $this->requestParams;
+        return $this->queryParams;
     }
 
     protected function getEndPoint()
     {
         return $this->requestEndPoint;
+    }
+
+    protected function getRequest()
+    {
+        return $this->requestParams;
     }
 
     /**

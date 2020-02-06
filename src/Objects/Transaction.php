@@ -21,7 +21,7 @@ class Transaction
     /**
      * @var string
      */
-    public $status;
+    public $status; // fixme: use enums
 
     /**
      * @var float

@@ -5,6 +5,7 @@ namespace SoluzioneSoftware\LaravelAffiliate\Networks;
 
 
 use Amazon\ProductAdvertisingAPI\v1\ApiException;
+use DateTime;
 use Exception;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
@@ -13,6 +14,7 @@ use Revolution\Amazon\ProductAdvertising\Facades\AmazonProduct;
 use SoluzioneSoftware\LaravelAffiliate\AbstractNetwork;
 use SoluzioneSoftware\LaravelAffiliate\Contracts\Network;
 use SoluzioneSoftware\LaravelAffiliate\Objects\Product;
+use SoluzioneSoftware\LaravelAffiliate\Objects\Response;
 
 class Amazon extends AbstractNetwork implements Network
 {
@@ -20,7 +22,7 @@ class Amazon extends AbstractNetwork implements Network
     /**
      * @inheritDoc
      */
-    public function getTransactions(array $params = [])
+    public function getTransactions(?DateTime $startDate = null, ?DateTime $endDate = null)
     {
         throw new Exception('Not implemented');
     }
@@ -39,14 +41,16 @@ class Amazon extends AbstractNetwork implements Network
         }
         catch (ApiException $exception){
             Log::error('Amazon ApiException: ' . $exception->getMessage());
-            return new Collection;
+            return new Response(false, $exception->getMessage());
         }
 
         $products = array_map(function (array $product){
             return $this->productFromJson($product);
         }, Arr::get($response, 'SearchResult.Items', []));
 
-        return new Collection($products);
+        $collection = new Collection($products);
+
+        return new Response(true, null, $collection);
     }
 
     /**
@@ -71,6 +75,7 @@ class Amazon extends AbstractNetwork implements Network
             $image['URL'],
             floatval($offer['Price']['Amount']),
             $offer['Price']['Currency'],
+            '', // fixme:
             $product
         );
     }

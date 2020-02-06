@@ -4,10 +4,18 @@
 namespace SoluzioneSoftware\LaravelAffiliate\Networks;
 
 
+use DateTime;
 use Exception;
+use GuzzleHttp\Exception\GuzzleException;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Config;
 use SoluzioneSoftware\LaravelAffiliate\AbstractNetwork;
 use SoluzioneSoftware\LaravelAffiliate\Contracts\Network;
+use SoluzioneSoftware\LaravelAffiliate\Objects\Product;
+use SoluzioneSoftware\LaravelAffiliate\Objects\Response;
+use SoluzioneSoftware\LaravelAffiliate\Objects\Transaction;
+use Carbon\Carbon;
 
 class Zanox extends AbstractNetwork implements Network
 {
@@ -47,11 +55,38 @@ class Zanox extends AbstractNetwork implements Network
         ]);
     }
 
-    public function getTransactions(array $params = [])
+    /**
+     * @inheritDoc
+     */
+    public function getTransactions(?DateTime $startDate = null, ?DateTime $endDate = null)
     {
-        // https://developer.zanox.com/web/guest/publisher-api-2011/get-leads-date
+        //documentation: https://developer.zanox.com/web/guest/publisher-api-2011/get-leads-date
 
-        throw new Exception('Not implemented');
+        $status=false;
+        $message="";
+        $transactions = new Collection();
+        if ($endDate < $startDate) return new Response($status,'Date End can\'t be less than Date Start' ,$transactions);
+
+        try{
+            while ($startDate<=$endDate){
+                $this->requestParams = ['reports','sales','date',$startDate->format('Y-m-d')];
+                $response=$this->callApi();
+                if ($response->getStatusCode()==200){
+                    $status = true;
+                    $json=json_decode($response->getBody());
+                    if ($json->items>0){
+                        foreach ($json->saleItems as $saleItem) { //todo: attenzione, c'è anche il nodo saleitems: testare
+                            $transactions->push($this->transactionFromJson($saleItem));
+                        }
+
+                    }
+                }
+                $startDate->addDay();
+            }
+        }catch (Exception $e){
+            $message=$e->getMessage();
+        }
+        return new Response($status,$message,$transactions);
     }
 
     /**
@@ -59,19 +94,64 @@ class Zanox extends AbstractNetwork implements Network
      */
     public function searchProducts(?string $query = null, ?array $advertisers = null, ?array $languages = null, ?int $limit = null, ?string $trackingCode = null)
     {
-        // https://developer.zanox.com/web/guest/publisher-api-2011/get-products
+        // fixme: consider
+        //  $languages(region for zanox??)
+        //  $trackingCode
 
-        throw new Exception('Not implemented');
+        // Documentation: https://developer.zanox.com/web/guest/publisher-api-2011/get-products
+
+        $this->requestParams = ['products'];
+        if (!is_null($query)) $this->queryParams['q'] = $query;
+        if (!is_null($limit)) $this->queryParams['items'] = $limit;
+        if (!is_null($advertisers)) $this->queryParams['programs'] = implode(',', $advertisers);
+
+        try{
+            $response = $this->callApi();
+        }
+        catch (GuzzleException $e){
+            return new Response(false, $e->getMessage());
+        }
+
+        if ($response->getStatusCode() !== 200){
+            return new Response(false, $response->getReasonPhrase());
+        }
+
+        $json = json_decode($response->getBody(), true);
+        $products = new Collection();
+        if ($json['items'] > 0){
+            foreach ($json['productItems']['productItem'] as $productItem) {
+                $products->push($this->productFromJson($productItem));
+            }
+        }
+
+        return new Response(true, null, $products);
     }
 
     protected function transactionFromJson(array $transaction)
     {
-        throw new Exception('Not implemented');
+        return new Transaction(
+            $transaction['id'],
+            $transaction['program']['id'],
+            $transaction['reviewState'],
+            floatval($transaction['commission']),
+            $transaction['currency'],
+            Carbon::parse($transaction['trackingDate']),
+            $transaction
+        );
     }
 
     protected function productFromJson(array $product)
     {
-        throw new Exception('Not implemented');
+        return new Product(
+            $product['@id'],
+            $product['name'],
+            $product['description'],
+            Arr::get($product, 'image.large'),
+            floatval($product['price']),
+            $product['currency'],
+            '', // fixme:
+            $product
+        );
     }
 
     /**
