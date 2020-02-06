@@ -11,9 +11,14 @@
     ],
     "require": {
         "php": "^7.1.3",
+        "chumper/zipper": "^1.0",
+        "illuminate/console": "^5.8",
+        "illuminate/database": "^5.8",
         "illuminate/support": "^5.8",
         "guzzlehttp/guzzle": "^6.3",
-        "ext-json": "*"
+        "ext-json": "*",
+        "maatwebsite/excel": "^3.1",
+        "matriphe/iso-639": "^1.2"
     },
     "autoload": {
         "psr-4": {
