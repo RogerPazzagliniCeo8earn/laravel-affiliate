@@ -54,7 +54,10 @@ class Zanox extends AbstractNetwork implements Network
         throw new Exception('Not implemented');
     }
 
-    public function searchProducts(?string $query = null, $languages = null)
+    /**
+     * @inheritDoc
+     */
+    public function searchProducts(?string $query = null, $languages = null, ?int $limit = null)
     {
         // https://developer.zanox.com/web/guest/publisher-api-2011/get-products
 
@@ -62,6 +65,11 @@ class Zanox extends AbstractNetwork implements Network
     }
 
     protected function transactionFromJson(array $transaction)
+    {
+        throw new Exception('Not implemented');
+    }
+
+    protected function productFromJson(array $product)
     {
         throw new Exception('Not implemented');
     }

@@ -6,6 +6,7 @@ namespace SoluzioneSoftware\LaravelAffiliate;
 
 use GuzzleHttp\Client;
 use Psr\Http\Message\ResponseInterface;
+use SoluzioneSoftware\LaravelAffiliate\Objects\Product;
 use SoluzioneSoftware\LaravelAffiliate\Objects\Transaction;
 
 abstract class AbstractNetwork
@@ -70,5 +71,11 @@ abstract class AbstractNetwork
      * @return Transaction
      */
     abstract protected function transactionFromJson(array $transaction);
+
+    /**
+     * @param array $product
+     * @return Product
+     */
+    abstract protected function productFromJson(array $product);
 
 }

@@ -17,7 +17,8 @@ interface Network
     /**
      * @param string|null $query
      * @param array|string|null $languages
-     * @return Collection
+     * @param int|null $limit
+     * @return Collection Collection of Product objects
      */
-    public function searchProducts(?string $query = null, $languages = null);
+    public function searchProducts(?string $query = null, $languages = null, ?int $limit = null);
 }
