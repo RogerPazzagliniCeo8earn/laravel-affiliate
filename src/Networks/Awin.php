@@ -48,7 +48,7 @@ class Awin extends AbstractNetwork implements Network
         throw new Exception('Not implemented');
     }
 
-    public function getProducts(array $params = [])
+    public function searchProducts(?string $query = null, $languages = null)
     {
         // https://wiki.awin.com/index.php/Product_Feeds_for_Publishers
 

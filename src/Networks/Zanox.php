@@ -54,7 +54,7 @@ class Zanox extends AbstractNetwork implements Network
         throw new Exception('Not implemented');
     }
 
-    public function getProducts(array $params = [])
+    public function searchProducts(?string $query = null, $languages = null)
     {
         // https://developer.zanox.com/web/guest/publisher-api-2011/get-products
 

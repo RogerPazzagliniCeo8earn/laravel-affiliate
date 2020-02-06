@@ -15,8 +15,9 @@ interface Network
     public function getTransactions(array $params = []);
 
     /**
-     * @param array $params
+     * @param string|null $query
+     * @param array|string|null $languages
      * @return Collection
      */
-    public function getProducts(array $params = []);
+    public function searchProducts(?string $query = null, $languages = null);
 }
