@@ -34,6 +34,11 @@ class Zanox extends AbstractNetwork implements Network
      */
     private $secretKey;
 
+    /**
+     * @var string|null
+     */
+    private $trackingCode;
+
     public function __construct()
     {
         parent::__construct();
@@ -94,9 +99,9 @@ class Zanox extends AbstractNetwork implements Network
      */
     public function searchProducts(?string $query = null, ?array $advertisers = null, ?array $languages = null, ?int $limit = null, ?string $trackingCode = null)
     {
-        // fixme: consider
-        //  $languages(region for zanox??)
-        //  $trackingCode
+        // fixme: consider $languages(region for zanox??)
+
+        $this->trackingCode = $trackingCode;
 
         // Documentation: https://developer.zanox.com/web/guest/publisher-api-2011/get-products
 
@@ -142,6 +147,7 @@ class Zanox extends AbstractNetwork implements Network
 
     protected function productFromJson(array $product)
     {
+        $link = Arr::get($product, 'trackingLinks.trackingLink.0.ppc');
         return new Product(
             $product['@id'],
             $product['name'],
@@ -149,9 +155,14 @@ class Zanox extends AbstractNetwork implements Network
             Arr::get($product, 'image.large'),
             floatval($product['price']),
             $product['currency'],
-            '', // fixme:
+            $link ? $this->getTrackingLink($link) : null,
             $product
         );
+    }
+
+    private function getTrackingLink(string $link)
+    {
+        return $link . ($this->trackingCode ? '&zpar0=' . $this->trackingCode : '');
     }
 
     /**

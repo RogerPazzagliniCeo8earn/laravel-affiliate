@@ -8,12 +8,12 @@ use Carbon\Carbon;
 use DateTime;
 use Exception;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use SoluzioneSoftware\LaravelAffiliate\AbstractNetwork;
 use SoluzioneSoftware\LaravelAffiliate\Contracts\Network;
+use SoluzioneSoftware\LaravelAffiliate\Models\Feed;
 use SoluzioneSoftware\LaravelAffiliate\Models\Product;
 use SoluzioneSoftware\LaravelAffiliate\Objects\Response;
 use SoluzioneSoftware\LaravelAffiliate\Objects\Transaction;
@@ -34,6 +34,11 @@ class Awin extends AbstractNetwork implements Network
      * @var string
      */
     private $publisherId;
+
+    /**
+     * @var string|null
+     */
+    private $trackingCode;
 
     public function __construct()
     {
@@ -83,12 +88,9 @@ class Awin extends AbstractNetwork implements Network
      */
     public function searchProducts(?string $query = null, ?array $advertisers = null, ?array $languages = null, ?int $limit = null, ?string $trackingCode = null)
     {
-        // fixme: consider $trackingCode
-
         // https://wiki.awin.com/index.php/Product_Feeds_for_Publishers
 
-        $feedsTable = Config::get('affiliate.db.tables.feeds');
-        $productsTable = Config::get('affiliate.db.tables.products');
+        $this->trackingCode = $trackingCode;
 
         $queryBuilder = Product::query();
 
@@ -103,22 +105,22 @@ class Awin extends AbstractNetwork implements Network
 
         if (!is_null($advertisers)){
             $queryBuilder
-                ->whereExists(function (\Illuminate\Database\Query\Builder $query) use ($productsTable, $feedsTable, $advertisers) {
+                ->whereExists(function (\Illuminate\Database\Query\Builder $query) use ($advertisers) {
                     $query
                         ->select(DB::raw(1))
-                        ->from($feedsTable)
-                        ->whereRaw("$productsTable.feed_id = $feedsTable.id")
+                        ->from($this->getFeedsTable())
+                        ->whereRaw("{$this->getProductsTable()}.feed_id = {$this->getFeedsTable()}.id")
                         ->whereIn('advertiser_id', $advertisers);
                 });
         }
 
         if (!is_null($languages)){
             $queryBuilder
-                ->whereExists(function (\Illuminate\Database\Query\Builder $query) use ($productsTable, $feedsTable, $languages) {
+                ->whereExists(function (\Illuminate\Database\Query\Builder $query) use ($languages) {
                     $query
                         ->select(DB::raw(1))
-                        ->from($feedsTable)
-                        ->whereRaw("$productsTable.feed_id = $feedsTable.id")
+                        ->from($this->getFeedsTable())
+                        ->whereRaw("{$this->getProductsTable()}.feed_id = {$this->getFeedsTable()}.id")
                         ->whereIn('language', $languages);
                 });
         }
@@ -157,8 +159,36 @@ class Awin extends AbstractNetwork implements Network
             $product['image_url'],
             floatval($product['price']),
             $product['currency'],
-            '', // fixme:
+            $this->getTrackingLink($product),
             $product
         );
+    }
+
+    private function getTrackingLink(array $product)
+    {
+        return 'https://www.awin1.com/pclick.php'
+            . "?p={$product['product_id']}"
+            . "&a={$this->publisherId}"
+            . "&m={$this->getAdvertiserId($product)}"
+            . ($this->trackingCode ? '&pref1=' . $this->trackingCode : '');
+    }
+
+    /**
+     * @param array $product
+     * @return int|null
+     */
+    private function getAdvertiserId(array $product)
+    {
+        return Feed::query()->where('id', $product['feed_id'])->value('advertiser_id');
+    }
+
+    private function getFeedsTable()
+    {
+        return Config::get('affiliate.db.tables.feeds');
+    }
+
+    private function getProductsTable()
+    {
+        return Config::get('affiliate.db.tables.products');
     }
 }
