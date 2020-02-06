@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Config;
  * @property int feed_id
  * @property string product_id
  * @property string title
- * @property string description
+ * @property string|null description
  * @property string|null image_url
  * @property float price
  * @property string currency

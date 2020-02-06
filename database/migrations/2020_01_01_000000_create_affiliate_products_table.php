@@ -29,7 +29,7 @@ class CreateAffiliateProductsTable extends Migration
             $table->unsignedBigInteger('feed_id');
             $table->string('product_id');
             $table->string('title');
-            $table->text('description');
+            $table->text('description')->nullable();
             $table->text('image_url')->nullable();
             $table->decimal('price');
             $table->string('currency');
@@ -53,6 +53,6 @@ class CreateAffiliateProductsTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists($this->getTable());
+        Schema::connection($this->getConnection())->dropIfExists($this->getTable());
     }
 }

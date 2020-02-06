@@ -43,6 +43,6 @@ class CreateAffiliateFeedsTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists($this->getTable());
+        Schema::connection($this->getConnection())->dropIfExists($this->getTable());
     }
 }
