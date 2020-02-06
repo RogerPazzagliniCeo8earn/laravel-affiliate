@@ -25,10 +25,10 @@ class ServiceProvider extends BaseServiceProvider
      */
     public function register()
     {
-        $this->app->singleton(NetworksManager::class, function () {
-            return new NetworksManager();
+        $this->app->singleton(Affiliate::class, function () {
+            return new Affiliate();
         });
 
-        $this->app->alias(NetworksManager::class, 'laravel-affiliate');
+        $this->app->alias(Affiliate::class, 'affiliate');
     }
 }

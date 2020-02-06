@@ -7,7 +7,7 @@ namespace SoluzioneSoftware\LaravelAffiliate;
 use SoluzioneSoftware\LaravelAffiliate\Contracts\Network;
 use SoluzioneSoftware\LaravelAffiliate\Exceptions\NetworkNotFoundException;
 
-class NetworksManager
+class Affiliate
 {
     /**
      * @param string $class
