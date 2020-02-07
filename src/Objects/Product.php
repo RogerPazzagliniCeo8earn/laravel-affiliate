@@ -69,4 +69,20 @@ class Product
         $this->tracking_link = $tracking_link;
         $this->original = $original;
     }
+
+    public function toArray()
+    {
+        return [
+            'program' => !is_null($this->program) ? $this->program->toArray() : null,
+            'id' => $this->id,
+            'name' => $this->name,
+            'description' => $this->description,
+            'image' => $this->image,
+            'price' => $this->price,
+            'currency' => $this->currency,
+            'details_link' => $this->details_link,
+            'tracking_link' => $this->tracking_link,
+            'original' => $this->original,
+        ];
+    }
 }
