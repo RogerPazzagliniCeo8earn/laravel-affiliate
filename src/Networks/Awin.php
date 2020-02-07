@@ -35,11 +35,6 @@ class Awin extends AbstractNetwork implements Network
      */
     private $publisherId;
 
-    /**
-     * @var string|null
-     */
-    private $trackingCode;
-
     public function __construct()
     {
         parent::__construct();
@@ -85,11 +80,10 @@ class Awin extends AbstractNetwork implements Network
 
     /**
      * @inheritDoc
+     * @see https://wiki.awin.com/index.php/Product_Feeds_for_Publishers
      */
     public function searchProducts(?string $query = null, ?array $advertisers = null, ?array $languages = null, ?int $limit = null, ?string $trackingCode = null)
     {
-        // https://wiki.awin.com/index.php/Product_Feeds_for_Publishers
-
         $this->trackingCode = $trackingCode;
 
         $queryBuilder = Product::query();

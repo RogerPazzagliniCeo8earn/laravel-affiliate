@@ -10,6 +10,7 @@ use Exception;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
+use Revolution\Amazon\ProductAdvertising\AmazonClient;
 use Revolution\Amazon\ProductAdvertising\Facades\AmazonProduct;
 use SoluzioneSoftware\LaravelAffiliate\AbstractNetwork;
 use SoluzioneSoftware\LaravelAffiliate\Contracts\Network;
@@ -18,6 +19,24 @@ use SoluzioneSoftware\LaravelAffiliate\Objects\Response;
 
 class Amazon extends AbstractNetwork implements Network
 {
+
+    /**
+     * ASIN (Default), SKU, UPC, EAN, and ISBN
+     * @var string $idType
+     */
+    private static $idType = 'ASIN';
+
+    /**
+     * @var AmazonClient $amazonClient
+     */
+    private $amazonClient;
+
+    public function __construct()
+    {
+        parent::__construct();
+
+        $this->amazonClient = AmazonProduct::setIdType(static::$idType);
+    }
 
     /**
      * @inheritDoc
@@ -36,8 +55,10 @@ class Amazon extends AbstractNetwork implements Network
         //  $languages
         //  $limit
         //  $trackingCode
+        $this->trackingCode = $trackingCode;
+
         try {
-            $response = AmazonProduct::search('All', $query , 1);
+            $response = $this->amazonClient->search('All', $query , 1);
         }
         catch (ApiException $exception){
             Log::error('Amazon ApiException: ' . $exception->getMessage());
@@ -71,7 +92,7 @@ class Amazon extends AbstractNetwork implements Network
         return new Product(
             $product['ASIN'],
             $product['ItemInfo']['Title']['DisplayValue'],
-            null,
+            null, // fixme:
             $image['URL'],
             floatval($offer['Price']['Amount']),
             $offer['Price']['Currency'],

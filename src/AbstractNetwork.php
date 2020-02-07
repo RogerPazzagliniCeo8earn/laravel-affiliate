@@ -37,6 +37,11 @@ abstract class AbstractNetwork
      */
     protected $client;
 
+    /**
+     * @var string|null
+     */
+    protected $trackingCode;
+
     public function __construct()
     {
         $this->client = new Client();

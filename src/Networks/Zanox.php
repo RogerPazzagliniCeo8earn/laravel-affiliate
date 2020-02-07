@@ -34,11 +34,6 @@ class Zanox extends AbstractNetwork implements Network
      */
     private $secretKey;
 
-    /**
-     * @var string|null
-     */
-    private $trackingCode;
-
     public function __construct()
     {
         parent::__construct();
@@ -62,11 +57,10 @@ class Zanox extends AbstractNetwork implements Network
 
     /**
      * @inheritDoc
+     * @see https://developer.zanox.com/web/guest/publisher-api-2011/get-leads-date
      */
     public function getTransactions(?DateTime $startDate = null, ?DateTime $endDate = null)
     {
-        //documentation: https://developer.zanox.com/web/guest/publisher-api-2011/get-leads-date
-
         $status=false;
         $message="";
         $transactions = new Collection();
@@ -96,14 +90,13 @@ class Zanox extends AbstractNetwork implements Network
 
     /**
      * @inheritDoc
+     * @see https://developer.zanox.com/web/guest/publisher-api-2011/get-products
      */
     public function searchProducts(?string $query = null, ?array $advertisers = null, ?array $languages = null, ?int $limit = null, ?string $trackingCode = null)
     {
         // fixme: consider $languages(region for zanox??)
 
         $this->trackingCode = $trackingCode;
-
-        // Documentation: https://developer.zanox.com/web/guest/publisher-api-2011/get-products
 
         $this->requestParams = ['products'];
         if (!is_null($query)) $this->queryParams['q'] = $query;
