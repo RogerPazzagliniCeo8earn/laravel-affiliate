@@ -170,34 +170,39 @@ class Awin extends AbstractNetwork implements Network
 
     protected function productFromJson(array $product)
     {
+        $feed = $this->getFeed($product);
         return new \SoluzioneSoftware\LaravelAffiliate\Objects\Product(
-            $product['id'],
+            $this->programFromJson($feed->toArray()),
+            $product['product_id'],
             $product['title'],
             $product['description'],
             $product['image_url'],
             floatval($product['price']),
             $product['currency'],
-            $this->getTrackingLink($product),
+            $product['details_link'],
+            $this->getTrackingLink($product, $feed),
             $product
         );
     }
 
-    private function getTrackingLink(array $product)
+    private function getTrackingLink(array $product, Feed $feed)
     {
         return 'https://www.awin1.com/pclick.php'
             . "?p={$product['product_id']}"
             . "&a={$this->publisherId}"
-            . "&m={$this->getAdvertiserId($product)}"
+            . "&m={$feed->advertiser_id}"
             . ($this->trackingCode ? '&pref1=' . $this->trackingCode : '');
     }
 
     /**
      * @param array $product
-     * @return int|null
+     * @return Feed|null
      */
-    private function getAdvertiserId(array $product)
+    private function getFeed(array $product)
     {
-        return Feed::query()->where('id', $product['feed_id'])->value('advertiser_id');
+        /** @var Feed|null $feed */
+        $feed = Feed::query()->where('id', $product['feed_id'])->first();
+        return $feed;
     }
 
     private function getFeedsTable()

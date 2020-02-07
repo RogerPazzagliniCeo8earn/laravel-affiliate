@@ -121,7 +121,8 @@ class Amazon extends AbstractNetwork implements Network
             $image['URL'],
             floatval($offer['Price']['Amount']),
             $offer['Price']['Currency'],
-            '', // fixme:
+            null, // fixme:
+            null, // fixme:
             $product
         );
     }
