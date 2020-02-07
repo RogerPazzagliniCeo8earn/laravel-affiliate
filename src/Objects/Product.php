@@ -39,7 +39,12 @@ class Product
     /**
      * @var string|null
      */
-    public $link;
+    public $details_link;
+
+    /**
+     * @var string|null
+     */
+    public $tracking_link;
 
     /**
      * @var array
@@ -54,7 +59,8 @@ class Product
         $this->image = $image;
         $this->price = $price;
         $this->currency = $currency;
-        $this->link = $link;
+        $this->details_link = $details_link;
+        $this->tracking_link = $tracking_link;
         $this->original = $original;
     }
 }

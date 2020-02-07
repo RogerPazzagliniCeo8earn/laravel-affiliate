@@ -148,6 +148,7 @@ class Zanox extends AbstractNetwork implements Network
             Arr::get($product, 'image.large'),
             floatval($product['price']),
             $product['currency'],
+            $link,
             $link ? $this->getTrackingLink($link) : null,
             $product
         );

@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Config;
  * @property string title
  * @property string|null description
  * @property string|null image_url
+ * @property string details_link
  * @property float price
  * @property string currency
  */
@@ -22,6 +23,7 @@ class Product extends Model
         'title',
         'description',
         'image_url',
+        'details_link',
         'price',
         'currency',
     ];

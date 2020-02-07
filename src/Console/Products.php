@@ -98,6 +98,7 @@ class Products extends Command
             'merchant_image_url',
             'search_price',
             'currency',
+            'merchant_deep_link',
             'data_feed_id',
             'last_updated',
         ];

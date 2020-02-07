@@ -31,6 +31,7 @@ class CreateAffiliateProductsTable extends Migration
             $table->string('title');
             $table->text('description')->nullable();
             $table->text('image_url')->nullable();
+            $table->text('details_link');
             $table->decimal('price');
             $table->string('currency');
             $table->timestamps();

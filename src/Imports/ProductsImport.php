@@ -68,6 +68,7 @@ class ProductsImport implements WithHeadingRow, OnEachRow, WithChunkReading
         $data['title'] = $data['product_name'];
         $data['image_url'] = $data['merchant_image_url'];
         $data['price'] = $data['search_price'];
+        $data['details_link'] = $data['merchant_deep_link'];
 
         Product::query()->updateOrCreate(Arr::only($data, ['feed_id', 'product_id']), $data);
     }
