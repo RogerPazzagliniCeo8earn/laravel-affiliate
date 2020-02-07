@@ -5,6 +5,7 @@ namespace SoluzioneSoftware\LaravelAffiliate\Contracts;
 
 
 use DateTime;
+use SoluzioneSoftware\LaravelAffiliate\Objects\Product;
 use SoluzioneSoftware\LaravelAffiliate\Objects\Response;
 
 interface Network
@@ -25,4 +26,11 @@ interface Network
      * @return Response
      */
     public function searchProducts(?string $query = null, ?array $advertisers = null, ?array $languages = null, ?int $limit = null, ?string $trackingCode = null);
+
+    /**
+     * @param string $id
+     * @param string|null $trackingCode
+     * @return Product|null
+     */
+    public function getProduct(string $id, ?string $trackingCode = null);
 }

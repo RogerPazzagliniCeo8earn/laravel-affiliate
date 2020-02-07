@@ -125,6 +125,17 @@ class Zanox extends AbstractNetwork implements Network
         return new Response(true, null, $products);
     }
 
+    /**
+     * @inheritDoc
+     * @see https://developer.zanox.com/web/guest/publisher-api-2011/get-products-product
+     */
+    public function getProduct(string $id, ?string $trackingCode = null)
+    {
+        $this->trackingCode = $trackingCode;
+
+        throw new Exception('Not implemented');
+    }
+
     protected function transactionFromJson(array $transaction)
     {
         return new Transaction(

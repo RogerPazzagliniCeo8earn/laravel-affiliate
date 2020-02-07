@@ -76,6 +76,21 @@ class Amazon extends AbstractNetwork implements Network
 
     /**
      * @inheritDoc
+     * @throws ApiException
+     */
+    public function getProduct(string $id, ?string $trackingCode = null)
+    {
+        $this->trackingCode = $trackingCode;
+
+        $response = $this->amazonClient->item($id);
+
+//        todo:
+
+        throw new Exception('Not implemented');
+    }
+
+    /**
+     * @inheritDoc
      */
     protected function transactionFromJson(array $transaction)
     {

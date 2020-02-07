@@ -132,6 +132,21 @@ class Awin extends AbstractNetwork implements Network
         return new Response(true, null, $collection);
     }
 
+    /**
+     * @inheritDoc
+     */
+    public function getProduct(string $id, ?string $trackingCode = null)
+    {
+        $this->trackingCode = $trackingCode;
+
+        $product = Product::query()->where('product_id', $id)->first();
+        if (is_null($product)){
+            return null;
+        }
+
+        return $this->productFromJson($product->toArray());
+    }
+
     protected function transactionFromJson(array $transaction)
     {
         return new Transaction(
