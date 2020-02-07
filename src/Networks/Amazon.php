@@ -99,13 +99,23 @@ class Amazon extends AbstractNetwork implements Network
 
     /**
      * @inheritDoc
+     * @return null
+     */
+    protected function programFromJson(array $program)
+    {
+        return null;
+    }
+
+    /**
+     * @inheritDoc
      */
     protected function productFromJson(array $product)
     {
         $image = $product['Images']['Primary']['Medium'];
         $offer = $product['Offers']['Listings'][0];
         return new Product(
-            $product['ASIN'],
+            null,
+            $product[static::$idType],
             $product['ItemInfo']['Title']['DisplayValue'],
             null, // fixme:
             $image['URL'],

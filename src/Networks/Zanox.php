@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Config;
 use SoluzioneSoftware\LaravelAffiliate\AbstractNetwork;
 use SoluzioneSoftware\LaravelAffiliate\Contracts\Network;
 use SoluzioneSoftware\LaravelAffiliate\Objects\Product;
+use SoluzioneSoftware\LaravelAffiliate\Objects\Program;
 use SoluzioneSoftware\LaravelAffiliate\Objects\Response;
 use SoluzioneSoftware\LaravelAffiliate\Objects\Transaction;
 use Carbon\Carbon;
@@ -149,10 +150,16 @@ class Zanox extends AbstractNetwork implements Network
         );
     }
 
+    protected function programFromJson(array $program)
+    {
+        return new Program($program['@id'], $program['$']);
+    }
+
     protected function productFromJson(array $product)
     {
         $link = Arr::get($product, 'trackingLinks.trackingLink.0.ppc');
         return new Product(
+            $this->programFromJson($product['program']),
             $product['@id'],
             $product['name'],
             $product['description'],

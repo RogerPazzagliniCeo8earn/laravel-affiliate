@@ -15,6 +15,7 @@ use SoluzioneSoftware\LaravelAffiliate\AbstractNetwork;
 use SoluzioneSoftware\LaravelAffiliate\Contracts\Network;
 use SoluzioneSoftware\LaravelAffiliate\Models\Feed;
 use SoluzioneSoftware\LaravelAffiliate\Models\Product;
+use SoluzioneSoftware\LaravelAffiliate\Objects\Program;
 use SoluzioneSoftware\LaravelAffiliate\Objects\Response;
 use SoluzioneSoftware\LaravelAffiliate\Objects\Transaction;
 
@@ -156,6 +157,14 @@ class Awin extends AbstractNetwork implements Network
             floatval($transaction['commissionAmount']['amount']),
             $transaction['commissionAmount']['currency'], Carbon::parse($transaction['transactionDate']),
             $transaction
+        );
+    }
+
+    protected function programFromJson(array $program)
+    {
+        return new Program(
+            $program['advertiser_id'],
+            $program['advertiser_name']
         );
     }
 

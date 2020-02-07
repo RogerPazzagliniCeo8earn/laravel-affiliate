@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Config;
 /**
  * @property int id
  * @property int advertiser_id
+ * @property string advertiser_name
  * @property int feed_id
  * @property bool joined
  * @property string region
@@ -20,6 +21,7 @@ class Feed extends Model
 {
     protected $fillable = [
         'advertiser_id',
+        'advertiser_name',
         'feed_id',
         'joined',
         'region',

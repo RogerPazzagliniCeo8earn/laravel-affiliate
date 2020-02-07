@@ -27,6 +27,7 @@ class CreateAffiliateFeedsTable extends Migration
         Schema::connection($this->getConnection())->create($this->getTable(), function (Blueprint $table) {
                 $table->bigIncrements('id');
                 $table->unsignedInteger('advertiser_id');
+                $table->string('advertiser_name');
                 $table->unsignedInteger('feed_id')->unique(); // note: for now, we are not considering affiliate network
                 $table->boolean('joined');
                 $table->string('region');

@@ -8,6 +8,7 @@ use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
 use Psr\Http\Message\ResponseInterface;
 use SoluzioneSoftware\LaravelAffiliate\Objects\Product;
+use SoluzioneSoftware\LaravelAffiliate\Objects\Program;
 use SoluzioneSoftware\LaravelAffiliate\Objects\Transaction;
 
 abstract class AbstractNetwork
@@ -91,6 +92,12 @@ abstract class AbstractNetwork
      * @return Transaction
      */
     abstract protected function transactionFromJson(array $transaction);
+
+    /**
+     * @param array $program
+     * @return Program|null
+     */
+    abstract protected function programFromJson(array $program);
 
     /**
      * @param array $product
