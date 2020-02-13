@@ -157,7 +157,6 @@ class Zanox extends AbstractNetwork implements Network
 
     protected function productFromJson(array $product)
     {
-        $link = Arr::get($product, 'trackingLinks.trackingLink.0.ppc');
         return new Product(
             $this->programFromJson($product['program']),
             $product['@id'],
@@ -166,15 +165,21 @@ class Zanox extends AbstractNetwork implements Network
             Arr::get($product, 'image.large'),
             floatval($product['price']),
             $product['currency'],
-            $link,
-            $link ? $this->getTrackingLink($link) : null,
+            $this->getDetailsLink($product),
+            $this->getTrackingLink($product),
             $product
         );
     }
 
-    private function getTrackingLink(string $link)
+    protected function getDetailsLink(array $product)
     {
-        return $link . ($this->trackingCode ? '&zpar0=' . $this->trackingCode : '');
+        return Arr::get($product, 'trackingLinks.trackingLink.0.ppc');
+    }
+
+    protected function getTrackingLink(array $product)
+    {
+        $link = $this->getDetailsLink($product);
+        return $link ? $link . ($this->trackingCode ? '&zpar0=' . $this->trackingCode : '') : null;
     }
 
     /**

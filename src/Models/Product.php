@@ -37,4 +37,9 @@ class Product extends Model
     {
         return Config::get('affiliate.db.tables.products');
     }
+
+    public function feed()
+    {
+        return $this->belongsTo(Feed::class);
+    }
 }

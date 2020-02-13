@@ -54,7 +54,6 @@ class Amazon extends AbstractNetwork implements Network
         // fixme: consider
         //  $languages
         //  $limit
-        //  $trackingCode
         $this->trackingCode = $trackingCode;
 
         try {
@@ -76,17 +75,26 @@ class Amazon extends AbstractNetwork implements Network
 
     /**
      * @inheritDoc
-     * @throws ApiException
      */
     public function getProduct(string $id, ?string $trackingCode = null)
     {
         $this->trackingCode = $trackingCode;
 
-        $response = $this->amazonClient->item($id);
+        try {
+            $response = $this->amazonClient->item($id);
+        }
+        catch (ApiException $exception){
+            Log::error('Amazon ApiException: ' . $exception->getMessage());
+            return null;
+        }
 
-//        todo:
+        $products = Arr::get($response, 'ItemsResult.Items', []);
+        if (!count($products)){
+            Log::info("Amazon product not found for id $id");
+            return null;
+        }
 
-        throw new Exception('Not implemented');
+        return $this->productFromJson(Arr::first($products));
     }
 
     /**
@@ -111,19 +119,38 @@ class Amazon extends AbstractNetwork implements Network
      */
     protected function productFromJson(array $product)
     {
-        $image = $product['Images']['Primary']['Medium'];
-        $offer = $product['Offers']['Listings'][0];
+        $offer = $product['Offers']['Listings'][0]; // fixme:
         return new Product(
             null,
             $product[static::$idType],
             $product['ItemInfo']['Title']['DisplayValue'],
             null, // fixme:
-            $image['URL'],
+            $this->getProductImage($product),
             floatval($offer['Price']['Amount']),
             $offer['Price']['Currency'],
-            null, // fixme:
-            null, // fixme:
+            $this->getDetailsLink($product),
+            $this->getTrackingLink($product),
             $product
         );
+    }
+
+    protected function getDetailsLink(array $product)
+    {
+        return $product['DetailPageURL'];
+    }
+
+    protected function getTrackingLink(array $product)
+    {
+        return $this->getDetailsLink($product); // fixme: consider $trackingCode
+    }
+
+    /**
+     * @see https://webservices.amazon.com/paapi5/documentation/images.html
+     * @param array $product
+     * @return string|null
+     */
+    private function getProductImage(array $product)
+    {
+        return Arr::get($product, 'Images.Primary.Medium.URL') ?? Arr::get($product, 'Images.Variants.0.Medium.URL');
     }
 }

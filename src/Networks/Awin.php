@@ -87,7 +87,7 @@ class Awin extends AbstractNetwork implements Network
     {
         $this->trackingCode = $trackingCode;
 
-        $queryBuilder = Product::query();
+        $queryBuilder = Product::with('feed');
 
         if (!is_null($query)){
             $queryBuilder
@@ -140,7 +140,7 @@ class Awin extends AbstractNetwork implements Network
     {
         $this->trackingCode = $trackingCode;
 
-        $product = Product::query()->where('product_id', $id)->first();
+        $product = Product::with('feed')->where('product_id', $id)->first();
         if (is_null($product)){
             return null;
         }
@@ -170,39 +170,32 @@ class Awin extends AbstractNetwork implements Network
 
     protected function productFromJson(array $product)
     {
-        $feed = $this->getFeed($product);
         return new \SoluzioneSoftware\LaravelAffiliate\Objects\Product(
-            $this->programFromJson($feed->toArray()),
+            $this->programFromJson($product['feed']),
             $product['product_id'],
             $product['title'],
             $product['description'],
             $product['image_url'],
             floatval($product['price']),
             $product['currency'],
-            $product['details_link'],
-            $this->getTrackingLink($product, $feed),
+            $this->getDetailsLink($product),
+            $this->getTrackingLink($product),
             $product
         );
     }
 
-    private function getTrackingLink(array $product, Feed $feed)
+    protected function getDetailsLink(array $product)
+    {
+        return $product['details_link'];
+    }
+
+    protected function getTrackingLink(array $product)
     {
         return 'https://www.awin1.com/pclick.php'
             . "?p={$product['product_id']}"
             . "&a={$this->publisherId}"
-            . "&m={$feed->advertiser_id}"
+            . "&m={$product['feed']['advertiser_id']}"
             . ($this->trackingCode ? '&pref1=' . $this->trackingCode : '');
-    }
-
-    /**
-     * @param array $product
-     * @return Feed|null
-     */
-    private function getFeed(array $product)
-    {
-        /** @var Feed|null $feed */
-        $feed = Feed::query()->where('id', $product['feed_id'])->first();
-        return $feed;
     }
 
     private function getFeedsTable()

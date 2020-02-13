@@ -105,4 +105,16 @@ abstract class AbstractNetwork
      */
     abstract protected function productFromJson(array $product);
 
+    /**
+     * @param array $product
+     * @return string|null
+     */
+    abstract protected function getDetailsLink(array $product);
+
+    /**
+     * @param array $product
+     * @return string|null
+     */
+    abstract protected function getTrackingLink(array $product);
+
 }
