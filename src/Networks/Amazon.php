@@ -119,15 +119,17 @@ class Amazon extends AbstractNetwork implements Network
      */
     protected function productFromJson(array $product)
     {
-        $offer = $product['Offers']['Listings'][0]; // fixme:
+        /** @var array|null $offer */
+        $offer = Arr::first(Arr::get($product, 'Offers.Listings')); // fixme: what about other offers?
+
         return new Product(
             null,
             $product[static::$idType],
             $product['ItemInfo']['Title']['DisplayValue'],
             null, // fixme:
             $this->getProductImage($product),
-            floatval($offer['Price']['Amount']),
-            $offer['Price']['Currency'],
+            floatval(Arr::get($offer, 'Price.Amount')),
+            Arr::get($offer, 'Price.Currency', 'EUR'), // fixme: parametrize
             $this->getDetailsLink($product),
             $this->getTrackingLink($product),
             $product
