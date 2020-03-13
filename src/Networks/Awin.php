@@ -163,6 +163,7 @@ class Awin extends AbstractNetwork implements Network
     protected function programFromJson(array $program)
     {
         return new Program(
+            $this,
             $program['advertiser_id'],
             $program['advertiser_name']
         );

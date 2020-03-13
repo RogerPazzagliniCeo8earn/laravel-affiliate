@@ -152,7 +152,7 @@ class Zanox extends AbstractNetwork implements Network
 
     protected function programFromJson(array $program)
     {
-        return new Program($program['@id'], $program['$']);
+        return new Program($this, $program['@id'], $program['$']);
     }
 
     protected function productFromJson(array $product)
