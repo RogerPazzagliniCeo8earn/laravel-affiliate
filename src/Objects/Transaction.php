@@ -9,14 +9,14 @@ use Carbon\Carbon;
 class Transaction
 {
     /**
-     * @var string
+     * @var string|null
      */
-    public $id;
+    public $programId;
 
     /**
      * @var string
      */
-    public $advertiserId;
+    public $id;
 
     /**
      * @var string
@@ -43,10 +43,10 @@ class Transaction
      */
     public $original;
 
-    public function __construct(string $id, string $advertiserId, string $status, float $amount, string $currency, Carbon $dateTime, array $original)
+    public function __construct(?string $programId, string $id, string $status, float $amount, string $currency, Carbon $dateTime, array $original)
     {
+        $this->programId = $programId;
         $this->id = $id;
-        $this->advertiserId = $advertiserId;
         $this->status = $status;
         $this->amount = $amount;
         $this->currency = $currency;

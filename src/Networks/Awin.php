@@ -169,8 +169,8 @@ class Awin extends AbstractNetwork implements Network
     protected function transactionFromJson(array $transaction)
     {
         return new Transaction(
-            $transaction['id'],
             $transaction['advertiserId'],
+            $transaction['id'],
             $transaction['commissionStatus'],
             floatval($transaction['commissionAmount']['amount']),
             $transaction['commissionAmount']['currency'],

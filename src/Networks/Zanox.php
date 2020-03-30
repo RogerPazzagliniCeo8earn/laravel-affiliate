@@ -180,8 +180,8 @@ class Zanox extends AbstractNetwork implements Network
     protected function transactionFromJson(array $transaction)
     {
         return new Transaction(
-            $transaction['id'],
             $transaction['program']['id'],
+            $transaction['id'],
             $transaction['reviewState'],
             floatval($transaction['commission']),
             $transaction['currency'],
