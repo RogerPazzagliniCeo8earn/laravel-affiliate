@@ -7,13 +7,15 @@ namespace SoluzioneSoftware\LaravelAffiliate\Networks;
 use Carbon\Carbon;
 use DateTime;
 use Exception;
+use GuzzleHttp\Exception\GuzzleException;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
+use RuntimeException;
 use SoluzioneSoftware\LaravelAffiliate\AbstractNetwork;
 use SoluzioneSoftware\LaravelAffiliate\Contracts\Network;
-use SoluzioneSoftware\LaravelAffiliate\Models\Feed;
 use SoluzioneSoftware\LaravelAffiliate\Models\Product;
 use SoluzioneSoftware\LaravelAffiliate\Objects\Program;
 use SoluzioneSoftware\LaravelAffiliate\Objects\Response;
@@ -54,29 +56,11 @@ class Awin extends AbstractNetwork implements Network
      */
     public function getTransactions(?DateTime $startDate = null, ?DateTime $endDate = null)
     {
-        $status=false;
-        $message="";
-        $transactions = new Collection();
         try{
-            $this->requestParams = ['publishers',$this->publisherId,'transactions'];
-            $this->queryParams = [
-                'startDate'=>$startDate->format('Y-m-d\TH:i:s'),
-                'endDate'=>$endDate->format('Y-m-d\TH:i:s'),
-                //   'timezone'=>'UTC',
-                //   'status'=>'pending',
-            ];
-
-            $response=$this->callApi();
-            if ($response->getStatusCode()==200){
-                $status = true;
-                foreach (json_decode($response->getBody()) as $transaction) {
-                    $transactions->push($this->transactionFromJson($transaction));
-                }
-            }
-        }catch (Exception $e){
-            $message=$e->getMessage();
+            return new Response(true, null, $this->executeTransactionsRequest(null, $startDate, $endDate));
+        }catch (Exception|GuzzleException $e){
+            return new Response(false, $e->getMessage());
         }
-        return new Response($status,$message,$transactions);
     }
 
     /**
@@ -148,6 +132,40 @@ class Awin extends AbstractNetwork implements Network
         return $this->productFromJson($product->toArray());
     }
 
+    /**
+     * @inheritDoc
+     * @throws GuzzleException
+     * @throws Exception
+     */
+    public function executeTransactionsRequest(?array $programs = null, ?DateTime $fromDateTime = null, ?DateTime $toDateTime = null)
+    {
+        $fromDateTime = is_null($fromDateTime) ? Date::now() : $fromDateTime;
+        $toDateTime = is_null($toDateTime) ? Date::now() : $toDateTime;
+
+        $this->requestEndPoint = "/publishers/{$this->publisherId}/transactions/";
+        $this->queryParams = [
+            'timezone' => 'UTC', // fixme: parametrize it
+            'startDate' => $fromDateTime->format('Y-m-d\TH:i:s'),
+            'endDate' => $toDateTime->format('Y-m-d\TH:i:s'),
+        ];
+
+        if (!is_null($programs)){
+            $this->queryParams['advertiserId'] = implode(',', $programs);
+        }
+
+        $response = $this->callApi();
+        $statusCode = $response->getStatusCode();
+        if ($statusCode !== 200){
+            throw new RuntimeException("Expected response status code 200. Got $statusCode.");
+        }
+
+        $transactions = new Collection();
+        foreach (json_decode($response->getBody()) as $transaction) {
+            $transactions->push($this->transactionFromJson($transaction));
+        }
+        return $transactions;
+    }
+
     protected function transactionFromJson(array $transaction)
     {
         return new Transaction(
@@ -155,7 +173,8 @@ class Awin extends AbstractNetwork implements Network
             $transaction['advertiserId'],
             $transaction['commissionStatus'],
             floatval($transaction['commissionAmount']['amount']),
-            $transaction['commissionAmount']['currency'], Carbon::parse($transaction['transactionDate']),
+            $transaction['commissionAmount']['currency'],
+            Carbon::parse($transaction['transactionDate']),
             $transaction
         );
     }

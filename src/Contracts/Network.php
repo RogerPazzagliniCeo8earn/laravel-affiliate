@@ -5,12 +5,15 @@ namespace SoluzioneSoftware\LaravelAffiliate\Contracts;
 
 
 use DateTime;
+use Illuminate\Support\Collection;
 use SoluzioneSoftware\LaravelAffiliate\Objects\Product;
 use SoluzioneSoftware\LaravelAffiliate\Objects\Response;
+use SoluzioneSoftware\LaravelAffiliate\TransactionsRequestBuilder;
 
 interface Network
 {
     /**
+     * @deprecated Please use "transactions" method
      * @param DateTime|null $startDate
      * @param DateTime|null $endDate
      * @return Response
@@ -33,4 +36,17 @@ interface Network
      * @return Product|null
      */
     public function getProduct(string $id, ?string $trackingCode = null);
+
+    /**
+     * @return TransactionsRequestBuilder
+     */
+    public function transactions();
+
+    /**
+     * @param array|null $programs
+     * @param DateTime|null $fromDateTime
+     * @param DateTime|null $toDateTime
+     * @return Collection
+     */
+    public function executeTransactionsRequest(?array $programs = null, ?DateTime $fromDateTime = null, ?DateTime $toDateTime = null);
 }

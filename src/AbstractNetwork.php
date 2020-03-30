@@ -21,11 +21,6 @@ abstract class AbstractNetwork
     /**
      * @var array
      */
-    protected $requestParams = [];
-
-    /**
-     * @var array
-     */
     protected $queryParams = [];
 
     /**
@@ -49,18 +44,23 @@ abstract class AbstractNetwork
     }
 
     /**
+     * @inheritDoc
+     */
+    public function transactions()
+    {
+        return new TransactionsRequestBuilder([static::class]);
+    }
+
+    /**
      * @return ResponseInterface
      * @throws GuzzleException
      */
     protected function callApi()
     {
         $uri = $this->baseUrl . $this->getEndPoint();
-        foreach ($this->getRequest() as $rp){
-            $uri.=$rp.$this->getEndPoint();
-        }
 
         $options = [
-            'query' => $this->getParams(),
+            'query' => $this->getQueryParams(),
             'headers' => $this->getHeaders(),
         ];
 
@@ -72,7 +72,7 @@ abstract class AbstractNetwork
         return ['Accept' => 'application/json'];
     }
 
-    protected function getParams()
+    protected function getQueryParams()
     {
         return $this->queryParams;
     }
@@ -80,11 +80,6 @@ abstract class AbstractNetwork
     protected function getEndPoint()
     {
         return $this->requestEndPoint;
-    }
-
-    protected function getRequest()
-    {
-        return $this->requestParams;
     }
 
     /**

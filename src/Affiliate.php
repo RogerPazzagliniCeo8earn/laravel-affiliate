@@ -24,4 +24,12 @@ class Affiliate
 
         return new $class;
     }
+
+    /**
+     * @return TransactionsRequestBuilder
+     */
+    public function transactions()
+    {
+        return new TransactionsRequestBuilder;
+    }
 }

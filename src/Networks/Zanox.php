@@ -4,19 +4,21 @@
 namespace SoluzioneSoftware\LaravelAffiliate\Networks;
 
 
+use Carbon\Carbon;
 use DateTime;
 use Exception;
 use GuzzleHttp\Exception\GuzzleException;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Date;
+use RuntimeException;
 use SoluzioneSoftware\LaravelAffiliate\AbstractNetwork;
 use SoluzioneSoftware\LaravelAffiliate\Contracts\Network;
 use SoluzioneSoftware\LaravelAffiliate\Objects\Product;
 use SoluzioneSoftware\LaravelAffiliate\Objects\Program;
 use SoluzioneSoftware\LaravelAffiliate\Objects\Response;
 use SoluzioneSoftware\LaravelAffiliate\Objects\Transaction;
-use Carbon\Carbon;
 
 class Zanox extends AbstractNetwork implements Network
 {
@@ -62,31 +64,69 @@ class Zanox extends AbstractNetwork implements Network
      */
     public function getTransactions(?DateTime $startDate = null, ?DateTime $endDate = null)
     {
-        $status=false;
-        $message="";
-        $transactions = new Collection();
-        if ($endDate < $startDate) return new Response($status,'Date End can\'t be less than Date Start' ,$transactions);
+        if ($endDate < $startDate){
+            return new Response(false, 'Date End can\'t be less than Date Start');
+        }
 
         try{
-            while ($startDate<=$endDate){
-                $this->requestParams = ['reports','sales','date',$startDate->format('Y-m-d')];
-                $response=$this->callApi();
-                if ($response->getStatusCode()==200){
-                    $status = true;
-                    $json=json_decode($response->getBody());
-                    if ($json->items>0){
-                        foreach ($json->saleItems as $saleItem) { //todo: attenzione, c'è anche il nodo saleitems: testare
-                            $transactions->push($this->transactionFromJson($saleItem));
-                        }
-
-                    }
-                }
-                $startDate->addDay();
-            }
-        }catch (Exception $e){
-            $message=$e->getMessage();
+            return new Response(true, null, $this->executeTransactionsRequest(null, $startDate, $endDate));
+        }catch (GuzzleException|Exception $e){
+            return new Response(false, $e->getMessage());
         }
-        return new Response($status,$message,$transactions);
+    }
+
+    /**
+     * @inheritDoc
+     * @throws GuzzleException
+     * @throws Exception
+     * @throws RuntimeException
+     * @see https://developer.zanox.com/web/guest/publisher-api-2011/get-leads-date
+     */
+    public function executeTransactionsRequest(?array $programs = null, ?DateTime $fromDateTime = null, ?DateTime $toDateTime = null)
+    {
+        $leads = $this->executeReportsRequest('leads', $programs, $fromDateTime, $toDateTime);
+        $sales = $this->executeReportsRequest('sales', $programs, $fromDateTime, $toDateTime);
+        return $leads->merge($sales);
+    }
+
+    /**
+     * @param string $type
+     * @param array|null $programs
+     * @param DateTime|null $fromDateTime
+     * @param DateTime|null $toDateTime
+     * @return Collection
+     * @throws GuzzleException
+     * @throws Exception
+     * @see https://developer.zanox.com/web/guest/publisher-api-2011/get-leads-date
+     * @see https://developer.zanox.com/web/guest/publisher-api-2011/get-sales-date
+     */
+    public function executeReportsRequest(string $type, ?array $programs = null, ?DateTime $fromDateTime = null, ?DateTime $toDateTime = null)
+    {
+        $fromDateTime = (is_null($fromDateTime) ? Date::now() : new Carbon($fromDateTime))->startOfDay();
+        $toDateTime = (is_null($toDateTime) ? Date::now() : new Carbon($toDateTime))->startOfDay();
+
+        $this->queryParams = [];
+        if (!is_null($programs)){
+            $this->queryParams['programs'] = implode(',', $programs);
+        }
+
+        $transactions = new Collection();
+        while ($fromDateTime->lessThanOrEqualTo($toDateTime)){
+            $this->requestEndPoint = "/reports/{$type}/date/{$fromDateTime->format('Y-m-d')}";
+            $response = $this->callApi();
+            $statusCode = $response->getStatusCode();
+            if ($statusCode !== 200){
+                throw new RuntimeException("Expected response status code 200. Got $statusCode.");
+            }
+
+            $json = json_decode($response->getBody(), true);
+            foreach ($json["{$type}Items"] as $item) {
+                $transactions->push($this->transactionFromJson($item));
+            }
+
+            $fromDateTime->addDay();
+        }
+        return $transactions;
     }
 
     /**
