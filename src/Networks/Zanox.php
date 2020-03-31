@@ -70,11 +70,28 @@ class Zanox extends AbstractNetwork implements Network
     /**
      * @inheritDoc
      * @see https://developer.zanox.com/web/guest/publisher-api-2011/get-products-product
-     * @throws Exception
+     * @throws GuzzleException
+     * @throws RuntimeException
      */
     public function getProduct(string $id, ?string $trackingCode = null)
     {
-        throw new Exception('Not implemented');
+        $this->trackingCode = $trackingCode;
+
+        $this->requestEndPoint = "/products/product/$id";
+
+        $response = $this->callApi();
+
+        $statusCode = $response->getStatusCode();
+        if ($statusCode !== 200){
+            throw new RuntimeException("Expected response status code 200. Got $statusCode.");
+        }
+
+        $responseBody = $response->getBody();
+        $product = Arr::get(json_decode($responseBody, true), 'productItem.0');
+        if (is_null($product)){
+            throw new RuntimeException("Got null product. Response body: $responseBody");
+        }
+        return $this->productFromJson($product);
     }
 
     /**
