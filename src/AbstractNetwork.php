@@ -48,7 +48,7 @@ abstract class AbstractNetwork
      */
     public function transactions()
     {
-        return new TransactionsRequestBuilder([static::class]);
+        return new NetworkTransactionsRequestBuilder($this);
     }
 
     /**

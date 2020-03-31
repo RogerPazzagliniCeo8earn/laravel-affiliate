@@ -18,11 +18,6 @@ abstract class AbstractRequestBuilder
     private $networks = null;
 
     /**
-     * @var string[]|null
-     */
-    protected $programs = null;
-
-    /**
      * @param string[]|null $networks
      */
     public function __construct(?array $networks = null)
@@ -38,17 +33,6 @@ abstract class AbstractRequestBuilder
     {
         // fixme: validate $networks param
         $this->networks = $networks;
-        return $this;
-    }
-
-    /**
-     * @param string[] $programs
-     * @return $this
-     */
-    public function programs(array $programs)
-    {
-        // fixme: validate $programs param
-        $this->programs = $programs;
         return $this;
     }
 

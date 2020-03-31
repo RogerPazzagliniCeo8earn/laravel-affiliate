@@ -38,7 +38,7 @@ class TransactionsRequestBuilder extends AbstractRequestBuilder
     {
         $transactions = new Collection;
         foreach ($this->getNetworks() as $network) {
-            $networkTransactions = $network->executeTransactionsRequest($this->programs, $this->fromDateTime, $this->toDateTime);
+            $networkTransactions = $network->executeTransactionsRequest(null, $this->fromDateTime, $this->toDateTime);
             $transactions = $transactions->merge($networkTransactions);
         }
         return $transactions;

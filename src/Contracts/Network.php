@@ -38,7 +38,7 @@ interface Network
     public function getProduct(string $id, ?string $trackingCode = null);
 
     /**
-     * @return TransactionsRequestBuilder
+     * @return NetworkTransactionsRequestBuilder
      */
     public function transactions();
 
