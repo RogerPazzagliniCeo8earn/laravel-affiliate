@@ -15,11 +15,9 @@ use Revolution\Amazon\ProductAdvertising\Facades\AmazonProduct;
 use SoluzioneSoftware\LaravelAffiliate\AbstractNetwork;
 use SoluzioneSoftware\LaravelAffiliate\Contracts\Network;
 use SoluzioneSoftware\LaravelAffiliate\Objects\Product;
-use SoluzioneSoftware\LaravelAffiliate\Objects\Response;
 
 class Amazon extends AbstractNetwork implements Network
 {
-
     /**
      * ASIN (Default), SKU, UPC, EAN, and ISBN
      * @var string $idType
@@ -40,47 +38,23 @@ class Amazon extends AbstractNetwork implements Network
 
     /**
      * @inheritDoc
-     * @throws Exception
+     * @throws ApiException
      */
-    public function getTransactions(?DateTime $startDate = null, ?DateTime $endDate = null)
+    public function executeProductsRequest(
+        ?array $programs = null, ?string $keyword = null, ?array $languages = null, ?string $trackingCode = null
+    )
     {
-        throw new Exception('Not implemented');
-    }
+        // fixme: consider $languages
+        // todo: cache results
 
-    /**
-     * @inheritDoc
-     * @throws Exception
-     */
-    public function executeTransactionsRequest(?array $programs = null, ?DateTime $fromDateTime = null, ?DateTime $toDateTime = null)
-    {
-        throw new Exception('Not implemented');
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function searchProducts(?string $query = null, ?array $advertisers = null, ?array $languages = null, ?int $limit = null, ?string $trackingCode = null)
-    {
-        // fixme: consider
-        //  $languages
-        //  $limit
         $this->trackingCode = $trackingCode;
-
-        try {
-            $response = $this->amazonClient->search('All', $query , 1);
-        }
-        catch (ApiException $exception){
-            Log::error('Amazon ApiException: ' . $exception->getMessage());
-            return new Response(false, $exception->getMessage());
-        }
+        $response = $this->amazonClient->search('All', $keyword);
 
         $products = array_map(function (array $product){
             return $this->productFromJson($product);
         }, Arr::get($response, 'SearchResult.Items', []));
 
-        $collection = new Collection($products);
-
-        return new Response(true, null, $collection);
+        return new Collection($products);
     }
 
     /**
@@ -109,6 +83,16 @@ class Amazon extends AbstractNetwork implements Network
 
     /**
      * @inheritDoc
+     * @throws Exception
+     */
+    public function executeTransactionsRequest(?array $programs = null, ?DateTime $fromDateTime = null, ?DateTime $toDateTime = null)
+    {
+        throw new Exception('Not implemented');
+    }
+
+    /**
+     * @inheritDoc
+     * @throws Exception
      */
     protected function transactionFromJson(array $transaction)
     {

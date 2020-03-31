@@ -17,7 +17,6 @@ use SoluzioneSoftware\LaravelAffiliate\AbstractNetwork;
 use SoluzioneSoftware\LaravelAffiliate\Contracts\Network;
 use SoluzioneSoftware\LaravelAffiliate\Objects\Product;
 use SoluzioneSoftware\LaravelAffiliate\Objects\Program;
-use SoluzioneSoftware\LaravelAffiliate\Objects\Response;
 use SoluzioneSoftware\LaravelAffiliate\Objects\Transaction;
 
 class Zanox extends AbstractNetwork implements Network
@@ -49,19 +48,33 @@ class Zanox extends AbstractNetwork implements Network
 
     /**
      * @inheritDoc
-     * @see https://developer.zanox.com/web/guest/publisher-api-2011/get-leads-date
+     * @throws RuntimeException
+     * @throws GuzzleException
+     * @see https://developer.zanox.com/web/guest/publisher-api-2011/get-products
      */
-    public function getTransactions(?DateTime $startDate = null, ?DateTime $endDate = null)
+    public function executeProductsRequest(
+        ?array $programs = null, ?string $keyword = null, ?array $languages = null, ?string $trackingCode = null
+    )
     {
-        if ($endDate < $startDate){
-            return new Response(false, 'Date End can\'t be less than Date Start');
-        }
+        $this->trackingCode = $trackingCode;
 
-        try{
-            return new Response(true, null, $this->executeTransactionsRequest(null, $startDate, $endDate));
-        }catch (GuzzleException|Exception $e){
-            return new Response(false, $e->getMessage());
-        }
+        $result = $this->searchProducts($keyword, $programs, $languages);
+
+        $products = new Collection(Arr::get($result, 'productItems.productItem', []));
+
+        return $products->map(function (array $productItem){
+            return $this->productFromJson($productItem);
+        });
+    }
+
+    /**
+     * @inheritDoc
+     * @see https://developer.zanox.com/web/guest/publisher-api-2011/get-products-product
+     * @throws Exception
+     */
+    public function getProduct(string $id, ?string $trackingCode = null)
+    {
+        throw new Exception('Not implemented');
     }
 
     /**
@@ -69,101 +82,12 @@ class Zanox extends AbstractNetwork implements Network
      * @throws GuzzleException
      * @throws Exception
      * @throws RuntimeException
-     * @see https://developer.zanox.com/web/guest/publisher-api-2011/get-leads-date
      */
     public function executeTransactionsRequest(?array $programs = null, ?DateTime $fromDateTime = null, ?DateTime $toDateTime = null)
     {
         $leads = $this->executeReportsRequest('leads', $programs, $fromDateTime, $toDateTime);
         $sales = $this->executeReportsRequest('sales', $programs, $fromDateTime, $toDateTime);
         return $leads->merge($sales);
-    }
-
-    /**
-     * @param string $type
-     * @param array|null $programs
-     * @param DateTime|null $fromDateTime
-     * @param DateTime|null $toDateTime
-     * @return Collection
-     * @throws GuzzleException
-     * @throws Exception
-     * @see https://developer.zanox.com/web/guest/publisher-api-2011/get-leads-date
-     * @see https://developer.zanox.com/web/guest/publisher-api-2011/get-sales-date
-     */
-    public function executeReportsRequest(string $type, ?array $programs = null, ?DateTime $fromDateTime = null, ?DateTime $toDateTime = null)
-    {
-        $fromDateTime = (is_null($fromDateTime) ? Date::now() : new Carbon($fromDateTime))->startOfDay();
-        $toDateTime = (is_null($toDateTime) ? Date::now() : new Carbon($toDateTime))->startOfDay();
-
-        $this->queryParams = [];
-        if (!is_null($programs)){
-            $this->queryParams['programs'] = implode(',', $programs);
-        }
-
-        $transactions = new Collection();
-        while ($fromDateTime->lessThanOrEqualTo($toDateTime)){
-            $this->requestEndPoint = "/reports/{$type}/date/{$fromDateTime->format('Y-m-d')}";
-            $response = $this->callApi();
-            $statusCode = $response->getStatusCode();
-            if ($statusCode !== 200){
-                throw new RuntimeException("Expected response status code 200. Got $statusCode.");
-            }
-
-            $json = json_decode($response->getBody(), true);
-            foreach ($json["{$type}Items"] as $item) {
-                $transactions->push($this->transactionFromJson($item));
-            }
-
-            $fromDateTime->addDay();
-        }
-        return $transactions;
-    }
-
-    /**
-     * @inheritDoc
-     * @see https://developer.zanox.com/web/guest/publisher-api-2011/get-products
-     */
-    public function searchProducts(?string $query = null, ?array $advertisers = null, ?array $languages = null, ?int $limit = null, ?string $trackingCode = null)
-    {
-        // fixme: consider $languages(region for zanox??)
-
-        $this->trackingCode = $trackingCode;
-
-        $this->requestParams = ['products'];
-        if (!is_null($query)) $this->queryParams['q'] = $query;
-        if (!is_null($limit)) $this->queryParams['items'] = $limit;
-        if (!is_null($advertisers)) $this->queryParams['programs'] = implode(',', $advertisers);
-
-        try{
-            $response = $this->callApi();
-        }
-        catch (GuzzleException $e){
-            return new Response(false, $e->getMessage());
-        }
-
-        if ($response->getStatusCode() !== 200){
-            return new Response(false, $response->getReasonPhrase());
-        }
-
-        $json = json_decode($response->getBody(), true);
-        $products = new Collection();
-        if ($json['items'] > 0){
-            foreach ($json['productItems']['productItem'] as $productItem) {
-                $products->push($this->productFromJson($productItem));
-            }
-        }
-
-        return new Response(true, null, $products);
-    }
-
-    /**
-     * @inheritDoc
-     * @see https://developer.zanox.com/web/guest/publisher-api-2011/get-products-product
-     */
-    public function getProduct(string $id, ?string $trackingCode = null)
-    {
-        $this->trackingCode = $trackingCode;
-
-        throw new Exception('Not implemented');
     }
 
     /**
@@ -245,6 +169,79 @@ class Zanox extends AbstractNetwork implements Network
             'Date' => $time,
             'nonce' => $nonce,
         ]);
+    }
+
+    /**
+     * @param string|null $keyword
+     * @param array|null $programs
+     * @param array|null $languages
+     * @return array
+     * @throws RuntimeException
+     * @throws GuzzleException
+     */
+    private function searchProducts(?string $keyword = null, ?array $programs = null, ?array $languages = null)
+    {
+        // fixme: consider $languages(region for zanox??) param
+        // todo: cache results
+
+        $this->requestEndPoint = '/products';
+
+        if (!is_null($keyword)){
+            $this->queryParams['q'] = $keyword;
+        }
+
+        if (!is_null($programs)){
+            $this->queryParams['programs'] = implode(',', $programs);
+        }
+
+        $response = $this->callApi();
+
+        $statusCode = $response->getStatusCode();
+        if ($statusCode !== 200){
+            throw new RuntimeException("Expected response status code 200. Got $statusCode.");
+        }
+
+        return json_decode($response->getBody(), true);
+    }
+
+    /**
+     * @param string $type
+     * @param array|null $programs
+     * @param DateTime|null $fromDateTime
+     * @param DateTime|null $toDateTime
+     * @return Collection
+     * @throws GuzzleException
+     * @throws Exception
+     * @see https://developer.zanox.com/web/guest/publisher-api-2011/get-leads-date
+     * @see https://developer.zanox.com/web/guest/publisher-api-2011/get-sales-date
+     */
+    private function executeReportsRequest(string $type, ?array $programs = null, ?DateTime $fromDateTime = null, ?DateTime $toDateTime = null)
+    {
+        $fromDateTime = (is_null($fromDateTime) ? Date::now() : new Carbon($fromDateTime))->startOfDay();
+        $toDateTime = (is_null($toDateTime) ? Date::now() : new Carbon($toDateTime))->startOfDay();
+
+        $this->queryParams = [];
+        if (!is_null($programs)){
+            $this->queryParams['programs'] = implode(',', $programs);
+        }
+
+        $transactions = new Collection();
+        while ($fromDateTime->lessThanOrEqualTo($toDateTime)){
+            $this->requestEndPoint = "/reports/{$type}/date/{$fromDateTime->format('Y-m-d')}";
+            $response = $this->callApi();
+            $statusCode = $response->getStatusCode();
+            if ($statusCode !== 200){
+                throw new RuntimeException("Expected response status code 200. Got $statusCode.");
+            }
+
+            $json = json_decode($response->getBody(), true);
+            foreach ($json["{$type}Items"] as $item) {
+                $transactions->push($this->transactionFromJson($item));
+            }
+
+            $fromDateTime->addDay();
+        }
+        return $transactions;
     }
 
     /**

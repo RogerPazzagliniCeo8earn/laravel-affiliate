@@ -15,7 +15,7 @@ abstract class AbstractRequestBuilder
     /**
      * @var string[]|null
      */
-    private $networks = null;
+    protected $networks = null;
 
     /**
      * @param string[]|null $networks

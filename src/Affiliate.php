@@ -32,4 +32,12 @@ class Affiliate
     {
         return new TransactionsRequestBuilder;
     }
+
+    /**
+     * @return ProductsRequestBuilder
+     */
+    public function products()
+    {
+        return new ProductsRequestBuilder;
+    }
 }

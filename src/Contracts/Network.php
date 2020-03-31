@@ -6,29 +6,28 @@ namespace SoluzioneSoftware\LaravelAffiliate\Contracts;
 
 use DateTime;
 use Illuminate\Support\Collection;
+use SoluzioneSoftware\LaravelAffiliate\NetworkProductsRequestBuilder;
+use SoluzioneSoftware\LaravelAffiliate\NetworkTransactionsRequestBuilder;
 use SoluzioneSoftware\LaravelAffiliate\Objects\Product;
-use SoluzioneSoftware\LaravelAffiliate\Objects\Response;
-use SoluzioneSoftware\LaravelAffiliate\TransactionsRequestBuilder;
 
 interface Network
 {
     /**
-     * @deprecated Please use "transactions" method
-     * @param DateTime|null $startDate
-     * @param DateTime|null $endDate
-     * @return Response
+     * @return NetworkProductsRequestBuilder
      */
-    public function getTransactions(?DateTime $startDate = null, ?DateTime $endDate = null);
+    public function products();
 
     /**
-     * @param string|null $query
-     * @param array|null $advertisers
-     * @param array|null $languages
-     * @param int|null $limit
+     * @param string[]|null $programs
+     * @param string|null $keyword
+     * @param string[]|null $languages
      * @param string|null $trackingCode
-     * @return Response
+     * @return Collection
      */
-    public function searchProducts(?string $query = null, ?array $advertisers = null, ?array $languages = null, ?int $limit = null, ?string $trackingCode = null);
+    public function executeProductsRequest(?array $programs = null,
+                                           ?string $keyword = null,
+                                           ?array $languages = null,
+                                           ?string $trackingCode = null);
 
     /**
      * @param string $id

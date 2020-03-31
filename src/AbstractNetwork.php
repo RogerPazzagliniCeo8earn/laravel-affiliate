@@ -4,14 +4,16 @@
 namespace SoluzioneSoftware\LaravelAffiliate;
 
 
+use DateTime;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
 use Psr\Http\Message\ResponseInterface;
+use SoluzioneSoftware\LaravelAffiliate\Contracts\Network;
 use SoluzioneSoftware\LaravelAffiliate\Objects\Product;
 use SoluzioneSoftware\LaravelAffiliate\Objects\Program;
 use SoluzioneSoftware\LaravelAffiliate\Objects\Transaction;
 
-abstract class AbstractNetwork
+abstract class AbstractNetwork implements Network
 {
     /**
      * @var string
@@ -46,10 +48,37 @@ abstract class AbstractNetwork
     /**
      * @inheritDoc
      */
+    public function products()
+    {
+        return new NetworkProductsRequestBuilder($this);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    abstract public function executeProductsRequest(
+        ?array $programs = null, ?string $keyword = null, ?array $languages = null, ?string $trackingCode = null
+    );
+
+    /**
+     * @inheritDoc
+     */
+    abstract public function getProduct(string $id, ?string $trackingCode = null);
+
+    /**
+     * @inheritDoc
+     */
     public function transactions()
     {
         return new NetworkTransactionsRequestBuilder($this);
     }
+
+    /**
+     * @inheritDoc
+     */
+    abstract public function executeTransactionsRequest(
+        ?array $programs = null, ?DateTime $fromDateTime = null, ?DateTime $toDateTime = null
+    );
 
     /**
      * @return ResponseInterface

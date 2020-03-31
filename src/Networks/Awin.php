@@ -19,7 +19,6 @@ use SoluzioneSoftware\LaravelAffiliate\AbstractNetwork;
 use SoluzioneSoftware\LaravelAffiliate\Contracts\Network;
 use SoluzioneSoftware\LaravelAffiliate\Models\Product;
 use SoluzioneSoftware\LaravelAffiliate\Objects\Program;
-use SoluzioneSoftware\LaravelAffiliate\Objects\Response;
 use SoluzioneSoftware\LaravelAffiliate\Objects\Transaction;
 
 class Awin extends AbstractNetwork implements Network
@@ -57,67 +56,19 @@ class Awin extends AbstractNetwork implements Network
     /**
      * @inheritDoc
      */
-    public function getTransactions(?DateTime $startDate = null, ?DateTime $endDate = null)
-    {
-        try{
-            return new Response(true, null, $this->executeTransactionsRequest(null, $startDate, $endDate));
-        }catch (Exception|GuzzleException $e){
-            return new Response(false, $e->getMessage());
-        }
-    }
-
-    /**
-     * @inheritDoc
-     * @see https://wiki.awin.com/index.php/Product_Feeds_for_Publishers
-     */
-    public function searchProducts(?string $query = null, ?array $advertisers = null, ?array $languages = null, ?int $limit = null, ?string $trackingCode = null)
+    public function executeProductsRequest(
+        ?array $programs = null, ?string $keyword = null, ?array $languages = null, ?string $trackingCode = null
+    )
     {
         $this->trackingCode = $trackingCode;
 
-        $queryBuilder = Product::with('feed');
-
-        if (!is_null($query)){
-            $queryBuilder
-                ->where(function (Builder $queryBuilder) use ($query) {
-                    $queryBuilder
-                        ->where('title', 'like', "%$query%")
-                        ->orWhere('description', 'like', "%$query%");
-                });
-        }
-
-        if (!is_null($advertisers)){
-            $queryBuilder
-                ->whereExists(function (\Illuminate\Database\Query\Builder $query) use ($advertisers) {
-                    $query
-                        ->select(DB::raw(1))
-                        ->from($this->getFeedsTable())
-                        ->whereRaw("{$this->getProductsTable()}.feed_id = {$this->getFeedsTable()}.id")
-                        ->whereIn('advertiser_id', $advertisers);
-                });
-        }
-
-        if (!is_null($languages)){
-            $queryBuilder
-                ->whereExists(function (\Illuminate\Database\Query\Builder $query) use ($languages) {
-                    $query
-                        ->select(DB::raw(1))
-                        ->from($this->getFeedsTable())
-                        ->whereRaw("{$this->getProductsTable()}.feed_id = {$this->getFeedsTable()}.id")
-                        ->whereIn('language', $languages);
-                });
-        }
-
-        if (!is_null($limit)){
-            $queryBuilder->take($limit);
-        }
+        $queryBuilder = $this->getProductQueryBuilder($keyword, $programs, $languages)->with('feed');
 
         $products = $queryBuilder->get();
 
-        $collection = $products->map(function (Product $product){
+        return $products->map(function (Product $product){
             return $this->productFromJson($product->toArray());
         });
-
-        return new Response(true, null, $collection);
     }
 
     /**
@@ -232,6 +183,50 @@ class Awin extends AbstractNetwork implements Network
             . "&a={$this->publisherId}"
             . "&m={$product['feed']['advertiser_id']}"
             . ($this->trackingCode ? '&' . static::TRACKING_CODE_PARAM . '=' . $this->trackingCode : '');
+    }
+
+    /**
+     * @param string|null $keyword
+     * @param string[]|null $programs
+     * @param string[]|null $languages
+     * @return Builder
+     */
+    private function getProductQueryBuilder(?string $keyword = null, ?array $programs = null, ?array $languages = null)
+    {
+        $queryBuilder = Product::query();
+
+        if (!is_null($keyword)){
+            $queryBuilder
+                ->where(function (Builder $queryBuilder) use ($keyword) {
+                    $queryBuilder
+                        ->where('title', 'like', "%$keyword%")
+                        ->orWhere('description', 'like', "%$keyword%");
+                });
+        }
+
+        if (!is_null($programs)){
+            $queryBuilder
+                ->whereExists(function (\Illuminate\Database\Query\Builder $query) use ($programs) {
+                    $query
+                        ->select(DB::raw(1))
+                        ->from($this->getFeedsTable())
+                        ->whereRaw("{$this->getProductsTable()}.feed_id = {$this->getFeedsTable()}.id")
+                        ->whereIn('advertiser_id', $programs);
+                });
+        }
+
+        if (!is_null($languages)){
+            $queryBuilder
+                ->whereExists(function (\Illuminate\Database\Query\Builder $query) use ($languages) {
+                    $query
+                        ->select(DB::raw(1))
+                        ->from($this->getFeedsTable())
+                        ->whereRaw("{$this->getProductsTable()}.feed_id = {$this->getFeedsTable()}.id")
+                        ->whereIn('language', $languages);
+                });
+        }
+
+        return $queryBuilder;
     }
 
     private function getFeedsTable()

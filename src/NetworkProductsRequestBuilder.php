@@ -7,7 +7,7 @@ namespace SoluzioneSoftware\LaravelAffiliate;
 use SoluzioneSoftware\LaravelAffiliate\Contracts\Network;
 use SoluzioneSoftware\LaravelAffiliate\Traits\HasPrograms;
 
-class NetworkTransactionsRequestBuilder extends TransactionsRequestBuilder
+class NetworkProductsRequestBuilder extends ProductsRequestBuilder
 {
     use HasPrograms;
 
@@ -31,6 +31,6 @@ class NetworkTransactionsRequestBuilder extends TransactionsRequestBuilder
      */
     public function get()
     {
-        return $this->network->executeTransactionsRequest($this->programs, $this->fromDateTime, $this->toDateTime);
+        return $this->network->executeProductsRequest($this->programs, $this->keyword, $this->languages, $this->trackingCode);
     }
 }
