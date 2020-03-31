@@ -39,11 +39,23 @@ class Transaction
     public $dateTime;
 
     /**
+     * @var string|null
+     */
+    public $trackingCode;
+
+    /**
      * @var array
      */
     public $original;
 
-    public function __construct(?string $programId, string $id, string $status, float $amount, string $currency, Carbon $dateTime, array $original)
+    public function __construct(?string $programId,
+                                string $id,
+                                string $status,
+                                float $amount,
+                                string $currency,
+                                Carbon $dateTime,
+                                ?string $trackingCode,
+                                array $original)
     {
         $this->programId = $programId;
         $this->id = $id;
@@ -51,6 +63,7 @@ class Transaction
         $this->amount = $amount;
         $this->currency = $currency;
         $this->dateTime = $dateTime;
+        $this->trackingCode = $trackingCode;
         $this->original = $original;
     }
 }

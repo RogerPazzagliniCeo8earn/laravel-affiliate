@@ -37,25 +37,14 @@ class Zanox extends AbstractNetwork implements Network
      */
     private $secretKey;
 
+    const TRACKING_CODE_PARAM = 'zpar0';
+
     public function __construct()
     {
         parent::__construct();
 
         $this->connectId = Config::get('affiliate.credentials.zanox.connect_id');
         $this->secretKey = Config::get('affiliate.credentials.zanox.secret_key');
-    }
-
-    protected function getHeaders()
-    {
-        $time       = $this->assignTimestamp();
-        $nonce      = $this->assignNonce();
-        $signature  = $this->getSignature($time, $nonce);
-
-        return array_merge(parent::getHeaders(), [
-            'Authorization' => sprintf('ZXWS %s:%s', $this->connectId, $signature),
-            'Date' => $time,
-            'nonce' => $nonce,
-        ]);
     }
 
     /**
@@ -177,6 +166,9 @@ class Zanox extends AbstractNetwork implements Network
         throw new Exception('Not implemented');
     }
 
+    /**
+     * @inheritDoc
+     */
     protected function transactionFromJson(array $transaction)
     {
         return new Transaction(
@@ -186,8 +178,28 @@ class Zanox extends AbstractNetwork implements Network
             floatval($transaction['commission']),
             $transaction['currency'],
             Carbon::parse($transaction['trackingDate']),
+            $this->getTrackingCodeFromTransaction($transaction),
             $transaction
         );
+    }
+
+    /**
+     * @param array $transaction
+     * @return string|null
+     */
+    private function getTrackingCodeFromTransaction(array $transaction)
+    {
+        $trackingCode = null;
+        array_map(
+            function($value) use (&$trackingCode) {
+                if ($value['@id'] === static::TRACKING_CODE_PARAM){
+                    $trackingCode = $value['$'];
+                }
+            },
+            (array)Arr::get($transaction, 'gpps', [])
+        );
+
+       return $trackingCode;
     }
 
     protected function programFromJson(array $program)
@@ -219,7 +231,20 @@ class Zanox extends AbstractNetwork implements Network
     protected function getTrackingLink(array $product)
     {
         $link = $this->getDetailsLink($product);
-        return $link ? $link . ($this->trackingCode ? '&zpar0=' . $this->trackingCode : '') : null;
+        return $link ? $link . ($this->trackingCode ? '&' . static::TRACKING_CODE_PARAM . '=' . $this->trackingCode : '') : null;
+    }
+
+    protected function getHeaders()
+    {
+        $time      = $this->assignTimestamp();
+        $nonce     = $this->assignNonce();
+        $signature = $this->getSignature($time, $nonce);
+
+        return array_merge(parent::getHeaders(), [
+            'Authorization' => sprintf('ZXWS %s:%s', $this->connectId, $signature),
+            'Date' => $time,
+            'nonce' => $nonce,
+        ]);
     }
 
     /**

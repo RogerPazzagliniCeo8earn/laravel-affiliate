@@ -9,6 +9,7 @@ use DateTime;
 use Exception;
 use GuzzleHttp\Exception\GuzzleException;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Date;
@@ -37,6 +38,8 @@ class Awin extends AbstractNetwork implements Network
      * @var string
      */
     private $publisherId;
+
+    const TRACKING_CODE_PARAM = 'pref1';
 
     public function __construct()
     {
@@ -166,6 +169,9 @@ class Awin extends AbstractNetwork implements Network
         return $transactions;
     }
 
+    /**
+     * @inheritDoc
+     */
     protected function transactionFromJson(array $transaction)
     {
         return new Transaction(
@@ -175,8 +181,18 @@ class Awin extends AbstractNetwork implements Network
             floatval($transaction['commissionAmount']['amount']),
             $transaction['commissionAmount']['currency'],
             Carbon::parse($transaction['transactionDate']),
+            $this->getTrackingCodeFromTransaction($transaction),
             $transaction
         );
+    }
+
+    /**
+     * @param array $transaction
+     * @return string|null
+     */
+    private function getTrackingCodeFromTransaction(array $transaction)
+    {
+        return Arr::get($transaction, 'clickRefs.' . static::TRACKING_CODE_PARAM);
     }
 
     protected function programFromJson(array $program)
@@ -215,7 +231,7 @@ class Awin extends AbstractNetwork implements Network
             . "?p={$product['product_id']}"
             . "&a={$this->publisherId}"
             . "&m={$product['feed']['advertiser_id']}"
-            . ($this->trackingCode ? '&pref1=' . $this->trackingCode : '');
+            . ($this->trackingCode ? '&' . static::TRACKING_CODE_PARAM . '=' . $this->trackingCode : '');
     }
 
     private function getFeedsTable()
