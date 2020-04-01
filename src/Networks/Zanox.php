@@ -222,7 +222,7 @@ class Zanox extends AbstractNetwork implements Network
     }
 
     /**
-     * @param string $type
+     * @param string $type possible values: leads, sales
      * @param array|null $programs
      * @param DateTime|null $fromDateTime
      * @param DateTime|null $toDateTime
@@ -252,6 +252,10 @@ class Zanox extends AbstractNetwork implements Network
             }
 
             $json = json_decode($response->getBody(), true);
+            if ((int)Arr::get($json, 'items', 0) === 0){
+                return $transactions;
+            }
+
             foreach ($json["{$type}Items"] as $item) {
                 $transactions->push($this->transactionFromJson($item));
             }
