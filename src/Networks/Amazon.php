@@ -41,7 +41,10 @@ class Amazon extends AbstractNetwork implements Network
      * @throws ApiException
      */
     public function executeProductsRequest(
-        ?array $programs = null, ?string $keyword = null, ?array $languages = null, ?string $trackingCode = null
+        ?array $programs = null,
+        ?string $keyword = null,
+        ?array $languages = null,
+        ?string $trackingCode = null
     )
     {
         // fixme: consider $languages
@@ -85,7 +88,11 @@ class Amazon extends AbstractNetwork implements Network
      * @inheritDoc
      * @throws Exception
      */
-    public function executeTransactionsRequest(?array $programs = null, ?DateTime $fromDateTime = null, ?DateTime $toDateTime = null)
+    public function executeTransactionsRequest(
+        ?array $programs = null,
+        ?DateTime $fromDateTime = null,
+        ?DateTime $toDateTime = null
+    )
     {
         throw new Exception('Not implemented');
     }

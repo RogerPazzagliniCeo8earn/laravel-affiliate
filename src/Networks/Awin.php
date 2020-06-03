@@ -1,4 +1,4 @@
-<?php
+<?php /** @noinspection PhpUndefinedClassInspection */
 
 
 namespace SoluzioneSoftware\LaravelAffiliate\Networks;
@@ -57,7 +57,10 @@ class Awin extends AbstractNetwork implements Network
      * @inheritDoc
      */
     public function executeProductsRequest(
-        ?array $programs = null, ?string $keyword = null, ?array $languages = null, ?string $trackingCode = null
+        ?array $programs = null,
+        ?string $keyword = null,
+        ?array $languages = null,
+        ?string $trackingCode = null
     )
     {
         $this->trackingCode = $trackingCode;
@@ -91,7 +94,11 @@ class Awin extends AbstractNetwork implements Network
      * @throws GuzzleException
      * @throws Exception
      */
-    public function executeTransactionsRequest(?array $programs = null, ?DateTime $fromDateTime = null, ?DateTime $toDateTime = null)
+    public function executeTransactionsRequest(
+        ?array $programs = null,
+        ?DateTime $fromDateTime = null,
+        ?DateTime $toDateTime = null
+    )
     {
         $fromDateTime = is_null($fromDateTime) ? Date::now() : $fromDateTime;
         $toDateTime = is_null($toDateTime) ? Date::now() : $toDateTime;

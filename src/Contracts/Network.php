@@ -24,10 +24,12 @@ interface Network
      * @param string|null $trackingCode
      * @return Collection
      */
-    public function executeProductsRequest(?array $programs = null,
-                                           ?string $keyword = null,
-                                           ?array $languages = null,
-                                           ?string $trackingCode = null);
+    public function executeProductsRequest(
+        ?array $programs = null,
+        ?string $keyword = null,
+        ?array $languages = null,
+        ?string $trackingCode = null
+    );
 
     /**
      * @param string $id
@@ -47,5 +49,9 @@ interface Network
      * @param DateTime|null $toDateTime
      * @return Collection
      */
-    public function executeTransactionsRequest(?array $programs = null, ?DateTime $fromDateTime = null, ?DateTime $toDateTime = null);
+    public function executeTransactionsRequest(
+        ?array $programs = null,
+        ?DateTime $fromDateTime = null,
+        ?DateTime $toDateTime = null
+    );
 }

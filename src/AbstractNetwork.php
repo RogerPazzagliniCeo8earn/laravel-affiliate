@@ -1,4 +1,4 @@
-<?php
+<?php /** @noinspection PhpUndefinedClassInspection */
 
 
 namespace SoluzioneSoftware\LaravelAffiliate;
@@ -57,7 +57,10 @@ abstract class AbstractNetwork implements Network
      * @inheritDoc
      */
     abstract public function executeProductsRequest(
-        ?array $programs = null, ?string $keyword = null, ?array $languages = null, ?string $trackingCode = null
+        ?array $programs = null,
+        ?string $keyword = null,
+        ?array $languages = null,
+        ?string $trackingCode = null
     );
 
     /**
@@ -77,7 +80,9 @@ abstract class AbstractNetwork implements Network
      * @inheritDoc
      */
     abstract public function executeTransactionsRequest(
-        ?array $programs = null, ?DateTime $fromDateTime = null, ?DateTime $toDateTime = null
+        ?array $programs = null,
+        ?DateTime $fromDateTime = null,
+        ?DateTime $toDateTime = null
     );
 
     /**

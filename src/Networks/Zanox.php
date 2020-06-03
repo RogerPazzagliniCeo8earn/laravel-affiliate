@@ -1,4 +1,4 @@
-<?php
+<?php /** @noinspection PhpUndefinedClassInspection */
 
 
 namespace SoluzioneSoftware\LaravelAffiliate\Networks;
@@ -53,7 +53,10 @@ class Zanox extends AbstractNetwork implements Network
      * @see https://developer.zanox.com/web/guest/publisher-api-2011/get-products
      */
     public function executeProductsRequest(
-        ?array $programs = null, ?string $keyword = null, ?array $languages = null, ?string $trackingCode = null
+        ?array $programs = null,
+        ?string $keyword = null,
+        ?array $languages = null,
+        ?string $trackingCode = null
     )
     {
         $this->trackingCode = $trackingCode;
@@ -100,7 +103,11 @@ class Zanox extends AbstractNetwork implements Network
      * @throws Exception
      * @throws RuntimeException
      */
-    public function executeTransactionsRequest(?array $programs = null, ?DateTime $fromDateTime = null, ?DateTime $toDateTime = null)
+    public function executeTransactionsRequest(
+        ?array $programs = null,
+        ?DateTime $fromDateTime = null,
+        ?DateTime $toDateTime = null
+    )
     {
         $leads = $this->executeReportsRequest('leads', $programs, $fromDateTime, $toDateTime);
         $sales = $this->executeReportsRequest('sales', $programs, $fromDateTime, $toDateTime);
@@ -232,7 +239,12 @@ class Zanox extends AbstractNetwork implements Network
      * @see https://developer.zanox.com/web/guest/publisher-api-2011/get-leads-date
      * @see https://developer.zanox.com/web/guest/publisher-api-2011/get-sales-date
      */
-    private function executeReportsRequest(string $type, ?array $programs = null, ?DateTime $fromDateTime = null, ?DateTime $toDateTime = null)
+    private function executeReportsRequest(
+        string $type,
+        ?array $programs = null,
+        ?DateTime $fromDateTime = null,
+        ?DateTime $toDateTime = null
+    )
     {
         $fromDateTime = (is_null($fromDateTime) ? Date::now() : new Carbon($fromDateTime))->startOfDay();
         $toDateTime = (is_null($toDateTime) ? Date::now() : new Carbon($toDateTime))->startOfDay();
