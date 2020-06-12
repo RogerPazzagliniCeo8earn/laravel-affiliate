@@ -56,16 +56,44 @@ class Awin extends AbstractNetwork implements Network
     /**
      * @inheritDoc
      */
+    public static function getMaxPerPage(): ?int
+    {
+        return null;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function executeProductsCountRequest(
+        ?array $programs = null,
+        ?string $keyword = null,
+        ?array $languages = null
+    )
+    {
+        return $this
+            ->getProductQueryBuilder($keyword, $programs, $languages)
+            ->getQuery() // see: https://stackoverflow.com/a/48624056
+            ->getCountForPagination();
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function executeProductsRequest(
         ?array $programs = null,
         ?string $keyword = null,
         ?array $languages = null,
-        ?string $trackingCode = null
-    )
+        ?string $trackingCode = null,
+        int $page = 1,
+        int $perPage = 10
+    ): Collection
     {
         $this->trackingCode = $trackingCode;
 
         $queryBuilder = $this->getProductQueryBuilder($keyword, $programs, $languages)->with('feed');
+        if (!is_null($perPage)){
+            $queryBuilder->forPage($page, $perPage);
+        }
 
         $products = $queryBuilder->get();
 

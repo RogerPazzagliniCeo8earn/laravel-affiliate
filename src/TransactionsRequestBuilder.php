@@ -5,7 +5,9 @@ namespace SoluzioneSoftware\LaravelAffiliate;
 
 
 use DateTime;
+use Exception;
 use Illuminate\Support\Collection;
+use SoluzioneSoftware\LaravelAffiliate\Contracts\Network;
 
 class TransactionsRequestBuilder extends AbstractRequestBuilder
 {
@@ -34,7 +36,7 @@ class TransactionsRequestBuilder extends AbstractRequestBuilder
     /**
      * @inheritDoc
      */
-    public function get()
+    protected function executeGet(int $page = 1, int $perPage = 10)
     {
         $transactions = new Collection;
         foreach ($this->getNetworks() as $network) {
@@ -42,5 +44,23 @@ class TransactionsRequestBuilder extends AbstractRequestBuilder
             $transactions = $transactions->merge($networkTransactions);
         }
         return $transactions;
+    }
+
+    /**
+     * @inheritDoc
+     * @throws Exception
+     */
+    protected function executeCount(): int
+    {
+        throw new Exception('Not implemented');
+    }
+
+    /**
+     * @inheritDoc
+     * @throws Exception
+     */
+    protected function executeCountForNetwork(Network $network): int
+    {
+        throw new Exception('Not implemented');
     }
 }

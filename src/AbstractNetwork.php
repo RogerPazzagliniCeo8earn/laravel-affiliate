@@ -7,6 +7,7 @@ namespace SoluzioneSoftware\LaravelAffiliate;
 use DateTime;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
+use Illuminate\Support\Collection;
 use Psr\Http\Message\ResponseInterface;
 use SoluzioneSoftware\LaravelAffiliate\Contracts\Network;
 use SoluzioneSoftware\LaravelAffiliate\Objects\Product;
@@ -48,10 +49,15 @@ abstract class AbstractNetwork implements Network
     /**
      * @inheritDoc
      */
-    public function products()
+    public static function products()
     {
-        return new NetworkProductsRequestBuilder($this);
+        return new NetworkProductsRequestBuilder(new static());
     }
+
+    /**
+     * @inheritDoc
+     */
+    abstract public static function getMaxPerPage(): ?int;
 
     /**
      * @inheritDoc
@@ -60,8 +66,10 @@ abstract class AbstractNetwork implements Network
         ?array $programs = null,
         ?string $keyword = null,
         ?array $languages = null,
-        ?string $trackingCode = null
-    );
+        ?string $trackingCode = null,
+        int $page = 1,
+        int $perPage = 10
+    ): Collection;
 
     /**
      * @inheritDoc

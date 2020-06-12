@@ -38,20 +38,46 @@ class Amazon extends AbstractNetwork implements Network
 
     /**
      * @inheritDoc
+     */
+    public static function getMaxPerPage(): ?int
+    {
+        return 10;
+    }
+
+    /**
+     * @inheritDoc
+     * @throws Exception
+     */
+    public function executeProductsCountRequest(
+        ?array $programs = null,
+        ?string $keyword = null,
+        ?array $languages = null
+    )
+    {
+        // fixme: consider $languages
+
+        throw new Exception('Not implemented');
+    }
+
+    /**
+     * @inheritDoc
      * @throws ApiException
      */
     public function executeProductsRequest(
         ?array $programs = null,
         ?string $keyword = null,
         ?array $languages = null,
-        ?string $trackingCode = null
-    )
+        ?string $trackingCode = null,
+        int $page = 1,
+        int $perPage = 10
+    ): Collection
     {
         // fixme: consider $languages
+        // fixme: consider $perPage
         // todo: cache results
 
         $this->trackingCode = $trackingCode;
-        $response = $this->amazonClient->search('All', $keyword);
+        $response = $this->amazonClient->search('All', $keyword, $page);
 
         $products = array_map(function (array $product){
             return $this->productFromJson($product);

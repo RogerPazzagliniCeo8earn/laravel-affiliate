@@ -29,7 +29,7 @@ class NetworkTransactionsRequestBuilder extends TransactionsRequestBuilder
     /**
      * @inheritDoc
      */
-    public function get()
+    protected function executeGet(int $page = 1, int $perPage = 10)
     {
         return $this->network->executeTransactionsRequest($this->programs, $this->fromDateTime, $this->toDateTime);
     }

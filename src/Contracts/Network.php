@@ -13,23 +13,44 @@ use SoluzioneSoftware\LaravelAffiliate\Objects\Product;
 interface Network
 {
     /**
+     * @return int|null
+     */
+    public static function getMaxPerPage(): ?int;
+
+    /**
      * @return NetworkProductsRequestBuilder
      */
-    public function products();
+    public static function products();
 
     /**
      * @param string[]|null $programs
      * @param string|null $keyword
      * @param string[]|null $languages
-     * @param string|null $trackingCode
+     * @return int
+     */
+    public function executeProductsCountRequest(
+        ?array $programs = null,
+        ?string $keyword = null,
+        ?array $languages = null
+    );
+
+    /**
+     * @param  string[]|null  $programs
+     * @param  string|null  $keyword
+     * @param  string[]|null  $languages
+     * @param  string|null  $trackingCode
+     * @param  int  $page
+     * @param  int  $perPage
      * @return Collection
      */
     public function executeProductsRequest(
         ?array $programs = null,
         ?string $keyword = null,
         ?array $languages = null,
-        ?string $trackingCode = null
-    );
+        ?string $trackingCode = null,
+        int $page = 1,
+        int $perPage = 10
+    ): Collection;
 
     /**
      * @param string $id

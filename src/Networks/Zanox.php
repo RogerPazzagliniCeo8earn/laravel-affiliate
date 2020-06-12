@@ -48,6 +48,29 @@ class Zanox extends AbstractNetwork implements Network
 
     /**
      * @inheritDoc
+     */
+    public static function getMaxPerPage(): ?int
+    {
+        return 50;
+    }
+
+    /**
+     * @inheritDoc
+     * @throws GuzzleException
+     */
+    public function executeProductsCountRequest(
+        ?array $programs = null,
+        ?string $keyword = null,
+        ?array $languages = null
+    )
+    {
+        $result = $this->searchProducts($keyword, $programs, $languages, 1, 1);
+
+        return (int)Arr::get($result, 'total');
+    }
+
+    /**
+     * @inheritDoc
      * @throws RuntimeException
      * @throws GuzzleException
      * @see https://developer.zanox.com/web/guest/publisher-api-2011/get-products
@@ -56,12 +79,14 @@ class Zanox extends AbstractNetwork implements Network
         ?array $programs = null,
         ?string $keyword = null,
         ?array $languages = null,
-        ?string $trackingCode = null
-    )
+        ?string $trackingCode = null,
+        int $page = 1,
+        int $perPage = 10
+    ): Collection
     {
         $this->trackingCode = $trackingCode;
 
-        $result = $this->searchProducts($keyword, $programs, $languages);
+        $result = $this->searchProducts($keyword, $programs, $languages, $page, $perPage);
 
         $products = new Collection(Arr::get($result, 'productItems.productItem', []));
 
@@ -196,14 +221,21 @@ class Zanox extends AbstractNetwork implements Network
     }
 
     /**
-     * @param string|null $keyword
-     * @param array|null $programs
-     * @param array|null $languages
+     * @param  string|null  $keyword
+     * @param  array|null  $programs
+     * @param  array|null  $languages
+     * @param  int  $page
+     * @param  int  $perPage
      * @return array
-     * @throws RuntimeException
      * @throws GuzzleException
      */
-    private function searchProducts(?string $keyword = null, ?array $programs = null, ?array $languages = null)
+    private function searchProducts(
+        ?string $keyword = null,
+        ?array $programs = null,
+        ?array $languages = null,
+        int $page = 1,
+        int $perPage = 10
+    )
     {
         // fixme: consider $languages(region for zanox??) param
         // todo: cache results
@@ -216,6 +248,12 @@ class Zanox extends AbstractNetwork implements Network
 
         if (!is_null($programs)){
             $this->queryParams['programs'] = implode(',', $programs);
+        }
+
+        $this->queryParams['page'] = $page;
+
+        if (!is_null($perPage)){
+            $this->queryParams['items'] = $perPage;
         }
 
         $response = $this->callApi();
