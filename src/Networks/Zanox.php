@@ -101,7 +101,7 @@ class Zanox extends AbstractNetwork implements Network
      * @throws GuzzleException
      * @throws RuntimeException
      */
-    public function getProduct(string $id, ?string $trackingCode = null)
+    public function executeGetProduct(string $id, ?string $trackingCode = null): ?Product
     {
         $this->trackingCode = $trackingCode;
 

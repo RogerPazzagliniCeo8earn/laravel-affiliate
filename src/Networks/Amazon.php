@@ -89,7 +89,7 @@ class Amazon extends AbstractNetwork implements Network
     /**
      * @inheritDoc
      */
-    public function getProduct(string $id, ?string $trackingCode = null)
+    public function executeGetProduct(string $id, ?string $trackingCode = null): ?Product
     {
         $this->trackingCode = $trackingCode;
 

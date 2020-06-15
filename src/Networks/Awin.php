@@ -18,6 +18,7 @@ use RuntimeException;
 use SoluzioneSoftware\LaravelAffiliate\AbstractNetwork;
 use SoluzioneSoftware\LaravelAffiliate\Contracts\Network;
 use SoluzioneSoftware\LaravelAffiliate\Models\Product;
+use SoluzioneSoftware\LaravelAffiliate\Objects\Product as ProductObject;
 use SoluzioneSoftware\LaravelAffiliate\Objects\Program;
 use SoluzioneSoftware\LaravelAffiliate\Objects\Transaction;
 
@@ -105,7 +106,7 @@ class Awin extends AbstractNetwork implements Network
     /**
      * @inheritDoc
      */
-    public function getProduct(string $id, ?string $trackingCode = null)
+    public function executeGetProduct(string $id, ?string $trackingCode = null): ?ProductObject
     {
         $this->trackingCode = $trackingCode;
 
@@ -196,7 +197,7 @@ class Awin extends AbstractNetwork implements Network
 
     protected function productFromJson(array $product)
     {
-        return new \SoluzioneSoftware\LaravelAffiliate\Objects\Product(
+        return new ProductObject(
             $this->programFromJson($product['feed']),
             $product['product_id'],
             $product['title'],

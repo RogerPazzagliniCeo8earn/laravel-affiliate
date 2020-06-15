@@ -49,7 +49,7 @@ abstract class AbstractNetwork implements Network
     /**
      * @inheritDoc
      */
-    public static function products()
+    public static function products(): NetworkProductsRequestBuilder
     {
         return new NetworkProductsRequestBuilder(new static());
     }
@@ -74,7 +74,10 @@ abstract class AbstractNetwork implements Network
     /**
      * @inheritDoc
      */
-    abstract public function getProduct(string $id, ?string $trackingCode = null);
+    public static function getProduct(string $id, ?string $trackingCode = null): ?Product
+    {
+        return (new static())->executeGetProduct($id, $trackingCode);
+    }
 
     /**
      * @inheritDoc
@@ -83,6 +86,11 @@ abstract class AbstractNetwork implements Network
     {
         return new NetworkTransactionsRequestBuilder($this);
     }
+
+    /**
+     * @inheritDoc
+     */
+    abstract public function executeGetProduct(string $id, ?string $trackingCode = null): ?Product;
 
     /**
      * @inheritDoc

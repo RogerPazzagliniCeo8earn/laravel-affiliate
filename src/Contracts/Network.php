@@ -20,7 +20,14 @@ interface Network
     /**
      * @return NetworkProductsRequestBuilder
      */
-    public static function products();
+    public static function products(): NetworkProductsRequestBuilder;
+
+    /**
+     * @param  string  $id
+     * @param  string|null  $trackingCode
+     * @return Product|null
+     */
+    public static function getProduct(string $id, ?string $trackingCode = null): ?Product;
 
     /**
      * @param string[]|null $programs
@@ -57,7 +64,7 @@ interface Network
      * @param string|null $trackingCode
      * @return Product|null
      */
-    public function getProduct(string $id, ?string $trackingCode = null);
+    public function executeGetProduct(string $id, ?string $trackingCode = null): ?Product;
 
     /**
      * @return NetworkTransactionsRequestBuilder
