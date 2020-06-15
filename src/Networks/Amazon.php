@@ -117,8 +117,10 @@ class Amazon extends AbstractNetwork implements Network
     public function executeTransactionsRequest(
         ?array $programs = null,
         ?DateTime $fromDateTime = null,
-        ?DateTime $toDateTime = null
-    )
+        ?DateTime $toDateTime = null,
+        int $page = 1,
+        int $perPage = 10
+    ): Collection
     {
         throw new Exception('Not implemented');
     }

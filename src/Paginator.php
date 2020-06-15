@@ -68,6 +68,24 @@ class Paginator implements Arrayable, ArrayAccess, Countable, IteratorAggregate,
     }
 
     /**
+     * @return Collection
+     */
+    public function getCollection(): Collection
+    {
+        return $this->items;
+    }
+
+    /**
+     * @param  Collection  $collection
+     * @return Paginator
+     */
+    public function setCollection(Collection $collection): self
+    {
+        $this->items = $collection;
+        return $this;
+    }
+
+    /**
      * @return array
      */
     public function toArray()

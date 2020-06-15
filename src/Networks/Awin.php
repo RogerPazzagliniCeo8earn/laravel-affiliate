@@ -125,9 +125,13 @@ class Awin extends AbstractNetwork implements Network
     public function executeTransactionsRequest(
         ?array $programs = null,
         ?DateTime $fromDateTime = null,
-        ?DateTime $toDateTime = null
-    )
+        ?DateTime $toDateTime = null,
+        int $page = 1,
+        int $perPage = 10
+    ): Collection
     {
+        // fixme: consider $page & $perPage parameters
+
         $fromDateTime = is_null($fromDateTime) ? Date::now() : $fromDateTime;
         $toDateTime = is_null($toDateTime) ? Date::now() : $toDateTime;
 

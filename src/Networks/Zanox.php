@@ -131,9 +131,13 @@ class Zanox extends AbstractNetwork implements Network
     public function executeTransactionsRequest(
         ?array $programs = null,
         ?DateTime $fromDateTime = null,
-        ?DateTime $toDateTime = null
-    )
+        ?DateTime $toDateTime = null,
+        int $page = 1,
+        int $perPage = 10
+    ): Collection
     {
+        // fixme: consider $page & $perPage parameters
+
         $leads = $this->executeReportsRequest('leads', $programs, $fromDateTime, $toDateTime);
         $sales = $this->executeReportsRequest('sales', $programs, $fromDateTime, $toDateTime);
         return $leads->merge($sales);

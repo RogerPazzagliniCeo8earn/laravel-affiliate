@@ -4,6 +4,7 @@
 namespace SoluzioneSoftware\LaravelAffiliate;
 
 
+use Illuminate\Support\Collection;
 use SoluzioneSoftware\LaravelAffiliate\Contracts\Network;
 use SoluzioneSoftware\LaravelAffiliate\Traits\HasPrograms;
 
@@ -29,8 +30,10 @@ class NetworkTransactionsRequestBuilder extends TransactionsRequestBuilder
     /**
      * @inheritDoc
      */
-    protected function executeGet(int $page = 1, int $perPage = 10)
+    protected function executeGet(int $page, int $perPage): Collection
     {
-        return $this->network->executeTransactionsRequest($this->programs, $this->fromDateTime, $this->toDateTime);
+        return $this->network->executeTransactionsRequest(
+            $this->programs, $this->fromDateTime, $this->toDateTime, $page, $perPage
+        );
     }
 }

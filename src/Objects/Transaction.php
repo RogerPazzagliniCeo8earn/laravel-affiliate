@@ -5,8 +5,9 @@ namespace SoluzioneSoftware\LaravelAffiliate\Objects;
 
 
 use Carbon\Carbon;
+use Illuminate\Contracts\Support\Arrayable;
 
-class Transaction
+class Transaction implements Arrayable
 {
     /**
      * @var string|null
@@ -65,5 +66,19 @@ class Transaction
         $this->dateTime = $dateTime;
         $this->trackingCode = $trackingCode;
         $this->original = $original;
+    }
+
+    public function toArray()
+    {
+        return [
+            'program_id' => $this->programId,
+            'id' => $this->id,
+            'status' => $this->status,
+            'amount' => $this->amount,
+            'currency' => $this->currency,
+            'date_time' => $this->dateTime,
+            'tracking_code' => $this->trackingCode,
+            'original' => $this->original,
+        ];
     }
 }

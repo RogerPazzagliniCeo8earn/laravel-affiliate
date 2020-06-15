@@ -4,7 +4,6 @@
 namespace SoluzioneSoftware\LaravelAffiliate;
 
 
-use Exception;
 use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
@@ -22,6 +21,11 @@ abstract class AbstractRequestBuilder
      * @var string[]|null
      */
     protected $networks = null;
+
+    /**
+     * @var array
+     */
+    protected $programs = [];
 
     /**
      * @var bool
@@ -44,6 +48,16 @@ abstract class AbstractRequestBuilder
     {
         // fixme: validate $networks param
         $this->networks = $networks;
+        return $this;
+    }
+
+    /**
+     * @param  array  $programs
+     * @return $this
+     */
+    public function programs(array $programs)
+    {
+        $this->programs = $programs;
         return $this;
     }
 
@@ -77,38 +91,104 @@ abstract class AbstractRequestBuilder
      * @param  int  $page
      * @param  int  $perPage
      * @return Paginator
-     * @throws Exception
+     * @throws BindingResolutionException
      */
     public function paginate(int $page = 1, int $perPage = 10): Paginator
     {
         $networks = [];
 
         foreach ($this->getNetworks() as $network) {
-            $networks[get_class($network)] = $this->executeCountForNetwork($network);
+            $networks[get_class($network)] = $network;
         }
 
-        $combined = $this->combine($networks);
+        $networksCounts = [];
+        foreach ($networks as $networkClass => $network) {
+            if ($this->catchErrors){
+                $count = $this
+                    ->attempt(function () use ($network, &$networksCounts) {
+                        return $this->executeCountForNetwork($network);
+                    }, 0);
+            }
+            else{
+                $count = $this->executeCountForNetwork($network);
+            }
+            $networksCounts[$networkClass] = $count;
+        }
+
+        $combined = $this->combine($networksCounts);
 
         $slice = array_slice($combined, ($page - 1) * $perPage, $perPage);
 
         // determine from-to range for each network
-        $fromTo = [];
-        foreach ($networks as $network => $count) {
-            $networkSlice = Arr::where($slice, function (array $item) use ($network) {
-                return $item['network'] === $network;
+        $fromToRanges = [];
+        foreach ($networksCounts as $networkClass => $count) {
+            $networkSlice = Arr::where($slice, function (array $item) use ($networkClass) {
+                return $item['network'] === $networkClass;
             });
             if (count($networkSlice)){
                 $indexes = Arr::pluck($networkSlice, 'index');
-                $fromTo[$network] = [
+                $fromToRanges[$networkClass] = [
                     'from' => min($indexes),
                     'to' => max($indexes),
                 ];
             }
         }
 
-        //
+        $chunks = [];
 
-        throw new Exception('Not implemented');
+        /** @var Network|string $networkClass */
+        foreach ($fromToRanges as $networkClass => $fromTo) {
+            $chunks[$networkClass] = static::chunk($fromTo['from'], $fromTo['to'], $networkClass::getMaxPerPage());
+        }
+
+        $collection = collect();
+
+        foreach ($chunks as $networkClass => $value) {
+            foreach ($value as $chunk) {
+                $network = $networks[$networkClass];
+                $chunkPage = $chunk['page'];
+                $chunkPerPage = $chunk['perPage'];
+                if ($this->catchErrors){
+                    $this
+                        ->attempt(function () use (&$collection, $network, $chunkPage, $chunkPerPage) {
+                            $collection = $collection->merge($this->executeGetForNetwork($network, $chunkPage, $chunkPerPage));
+                        });
+                }
+                else{
+                    $collection = $collection->merge($this->executeGetForNetwork($network, $chunkPage, $chunkPerPage));
+                }
+            }
+        }
+
+        return new Paginator($collection, count($combined), $page, $perPage);
+    }
+
+    protected static function chunk(int $from, int $to, ?int $maxPerPage = null): array
+    {
+        $chunks = [];
+
+        $processed = $from - 1;
+
+        while ($processed < $to){
+            $perPage = 1;
+            $i = 1;
+            while (
+                ($from <= 1 || $i <= $processed)
+                && ($to >= $i + $processed)
+                && (is_null($maxPerPage) || $i <= $maxPerPage)
+            ){
+                if ($processed % $i === 0){
+                    $perPage = $i;
+                }
+
+                $i++;
+            }
+
+            $chunks[] = ['page' => $processed / $perPage + 1, 'perPage' => $perPage];
+            $processed += $perPage;
+        }
+
+        return $chunks;
     }
 
     protected function combine(array $networks)
@@ -144,7 +224,22 @@ abstract class AbstractRequestBuilder
      * @param  int  $perPage
      * @return Collection
      */
-    abstract protected function executeGet(int $page, int $perPage);
+    protected function executeGet(int $page, int $perPage): Collection
+    {
+        $collection = collect();
+        foreach ($this->getNetworks() as $network) {
+            $collection = $collection->merge($this->executeGetForNetwork($network, $page, $perPage));
+        }
+        return $collection;
+    }
+
+    /**
+     * @param  Network  $network
+     * @param  int  $page
+     * @param  int  $perPage
+     * @return Collection
+     */
+    abstract protected function executeGetForNetwork(Network $network, int $page, int $perPage);
 
     /**
      * @return int
@@ -178,7 +273,14 @@ abstract class AbstractRequestBuilder
     /**
      * @return int
      */
-    abstract protected function executeCount(): int;
+    protected function executeCount(): int
+    {
+        $count = 0;
+        foreach ($this->getNetworks() as $network) {
+            $count += $this->executeCountForNetwork($network);
+        }
+        return $count;
+    }
 
     /**
      * @param  Network  $network
@@ -199,6 +301,15 @@ abstract class AbstractRequestBuilder
             },
             $networks
         );
+    }
+
+    /**
+     * @param  Network  $network
+     * @return array|null
+     */
+    protected function getPrograms(Network $network): ?array
+    {
+        return Arr::get($this->programs, get_class($network), null);
     }
 
     /**

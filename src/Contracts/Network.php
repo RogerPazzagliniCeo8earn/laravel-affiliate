@@ -65,14 +65,18 @@ interface Network
     public function transactions();
 
     /**
-     * @param array|null $programs
-     * @param DateTime|null $fromDateTime
-     * @param DateTime|null $toDateTime
+     * @param  array|null  $programs
+     * @param  DateTime|null  $fromDateTime
+     * @param  DateTime|null  $toDateTime
+     * @param  int  $page
+     * @param  int  $perPage
      * @return Collection
      */
     public function executeTransactionsRequest(
         ?array $programs = null,
         ?DateTime $fromDateTime = null,
-        ?DateTime $toDateTime = null
-    );
+        ?DateTime $toDateTime = null,
+        int $page = 1,
+        int $perPage = 10
+    ): Collection;
 }

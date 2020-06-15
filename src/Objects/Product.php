@@ -4,7 +4,9 @@
 namespace SoluzioneSoftware\LaravelAffiliate\Objects;
 
 
-class Product
+use Illuminate\Contracts\Support\Arrayable;
+
+class Product implements Arrayable
 {
     /**
      * @var Program|null

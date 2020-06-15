@@ -4,7 +4,6 @@
 namespace SoluzioneSoftware\LaravelAffiliate;
 
 
-use Illuminate\Support\Collection;
 use SoluzioneSoftware\LaravelAffiliate\Contracts\Network;
 
 class ProductsRequestBuilder extends AbstractRequestBuilder
@@ -54,31 +53,18 @@ class ProductsRequestBuilder extends AbstractRequestBuilder
         return $this;
     }
 
-    protected function executeGet(int $page, int $perPage)
+    /**
+     * @inheritDoc
+     */
+    protected function executeGetForNetwork(Network $network, int $page, int $perPage)
     {
-//        fixme: consider $page & $perPage parameters
-
-        $products = new Collection;
-        foreach ($this->getNetworks() as $network) {
-            $networkProducts = $network->executeProductsRequest(
-                null, $this->keyword, $this->languages, $this->trackingCode
-            );
-            $products = $products->merge($networkProducts);
-        }
-        return $products;
-    }
-
-    protected function executeCount(): int
-    {
-        $count = 0;
-        foreach ($this->getNetworks() as $network) {
-            $count += $network->executeProductsCountRequest(null, $this->keyword, $this->languages);
-        }
-        return $count;
+        return $network->executeProductsRequest(
+            $this->getPrograms($network), $this->keyword, $this->languages, $this->trackingCode, $page, $perPage
+        );
     }
 
     protected function executeCountForNetwork(Network $network): int
     {
-        return $network->executeProductsCountRequest(null, $this->keyword, $this->languages);
+        return $network->executeProductsCountRequest($this->getPrograms($network), $this->keyword, $this->languages);
     }
 }

@@ -4,9 +4,10 @@
 namespace SoluzioneSoftware\LaravelAffiliate\Objects;
 
 
+use Illuminate\Contracts\Support\Arrayable;
 use SoluzioneSoftware\LaravelAffiliate\Contracts\Network;
 
-class Program
+class Program implements Arrayable
 {
     /**
      * @var Network
