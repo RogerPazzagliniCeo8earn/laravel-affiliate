@@ -69,7 +69,7 @@ interface Network
     /**
      * @return NetworkTransactionsRequestBuilder
      */
-    public function transactions();
+    public static function transactions();
 
     /**
      * @param  array|null  $programs

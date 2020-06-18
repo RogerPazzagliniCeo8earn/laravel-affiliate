@@ -82,9 +82,9 @@ abstract class AbstractNetwork implements Network
     /**
      * @inheritDoc
      */
-    public function transactions()
+    public static function transactions()
     {
-        return new NetworkTransactionsRequestBuilder($this);
+        return new NetworkTransactionsRequestBuilder(new static());
     }
 
     /**
