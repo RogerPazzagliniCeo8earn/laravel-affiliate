@@ -6,12 +6,9 @@ namespace SoluzioneSoftware\LaravelAffiliate;
 
 use Illuminate\Support\Collection;
 use SoluzioneSoftware\LaravelAffiliate\Contracts\Network;
-use SoluzioneSoftware\LaravelAffiliate\Traits\HasPrograms;
 
 class NetworkTransactionsRequestBuilder extends TransactionsRequestBuilder
 {
-    use HasPrograms;
-
     /**
      * @var Network
      */
@@ -33,7 +30,16 @@ class NetworkTransactionsRequestBuilder extends TransactionsRequestBuilder
     protected function executeGet(int $page, int $perPage): Collection
     {
         return $this->network->executeTransactionsRequest(
-            $this->programs, $this->fromDateTime, $this->toDateTime, $page, $perPage
+            $this->getPrograms($this->network), $this->fromDateTime, $this->toDateTime, $page, $perPage
         );
+    }
+
+    /**
+     * @param  Network  $network
+     * @return array|null
+     */
+    protected function getPrograms(Network $network): ?array
+    {
+        return count($this->programs) ? $this->programs : null;
     }
 }
