@@ -1,8 +1,6 @@
 <?php
 
-
-namespace SoluzioneSoftware\LaravelAffiliate;
-
+namespace SoluzioneSoftware\LaravelAffiliate\Requests;
 
 use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Support\Arr;

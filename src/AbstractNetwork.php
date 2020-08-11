@@ -1,11 +1,10 @@
 <?php /** @noinspection PhpUndefinedClassInspection */
 
-
 namespace SoluzioneSoftware\LaravelAffiliate;
-
 
 use DateTime;
 use GuzzleHttp\Client;
+use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\GuzzleException;
 use Illuminate\Support\Collection;
 use Psr\Http\Message\ResponseInterface;
@@ -13,6 +12,8 @@ use SoluzioneSoftware\LaravelAffiliate\Contracts\Network;
 use SoluzioneSoftware\LaravelAffiliate\Objects\Product;
 use SoluzioneSoftware\LaravelAffiliate\Objects\Program;
 use SoluzioneSoftware\LaravelAffiliate\Objects\Transaction;
+use SoluzioneSoftware\LaravelAffiliate\Requests\NetworkProductsRequestBuilder;
+use SoluzioneSoftware\LaravelAffiliate\Requests\NetworkTransactionsRequestBuilder;
 
 abstract class AbstractNetwork implements Network
 {
@@ -32,7 +33,7 @@ abstract class AbstractNetwork implements Network
     protected $requestEndPoint = '/';
 
     /**
-     * @var Client
+     * @var ClientInterface
      */
     protected $client;
 
@@ -41,9 +42,9 @@ abstract class AbstractNetwork implements Network
      */
     protected $trackingCode;
 
-    public function __construct()
+    public function __construct(ClientInterface $client)
     {
-        $this->client = new Client();
+        $this->client = $client;
     }
 
     /**
@@ -51,7 +52,7 @@ abstract class AbstractNetwork implements Network
      */
     public static function products(): NetworkProductsRequestBuilder
     {
-        return new NetworkProductsRequestBuilder(new static());
+        return new NetworkProductsRequestBuilder(new static(new Client()));
     }
 
     /**
@@ -76,7 +77,7 @@ abstract class AbstractNetwork implements Network
      */
     public static function getProduct(string $id, ?string $trackingCode = null): ?Product
     {
-        return (new static())->executeGetProduct($id, $trackingCode);
+        return (new static(new Client()))->executeGetProduct($id, $trackingCode);
     }
 
     /**
@@ -84,7 +85,7 @@ abstract class AbstractNetwork implements Network
      */
     public static function transactions()
     {
-        return new NetworkTransactionsRequestBuilder(new static());
+        return new NetworkTransactionsRequestBuilder(new static(new Client()));
     }
 
     /**

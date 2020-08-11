@@ -1,8 +1,9 @@
 <?php
 
-
 namespace SoluzioneSoftware\LaravelAffiliate;
 
+use SoluzioneSoftware\LaravelAffiliate\Requests\ProductsRequestBuilder;
+use SoluzioneSoftware\LaravelAffiliate\Requests\TransactionsRequestBuilder;
 
 class Affiliate
 {

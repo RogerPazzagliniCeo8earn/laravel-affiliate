@@ -1,12 +1,11 @@
 <?php /** @noinspection PhpUndefinedClassInspection */
 
-
 namespace SoluzioneSoftware\LaravelAffiliate\Networks;
-
 
 use Carbon\Carbon;
 use DateTime;
 use Exception;
+use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\GuzzleException;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
@@ -38,9 +37,9 @@ class Zanox extends AbstractNetwork implements Network
 
     const TRACKING_CODE_PARAM = 'zpar0';
 
-    public function __construct()
+    public function __construct(ClientInterface $client)
     {
-        parent::__construct();
+        parent::__construct($client);
 
         $this->connectId = Config::get('affiliate.credentials.zanox.connect_id');
         $this->secretKey = Config::get('affiliate.credentials.zanox.secret_key');

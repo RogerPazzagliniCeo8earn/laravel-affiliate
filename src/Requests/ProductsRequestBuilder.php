@@ -1,8 +1,6 @@
 <?php
 
-
-namespace SoluzioneSoftware\LaravelAffiliate;
-
+namespace SoluzioneSoftware\LaravelAffiliate\Requests;
 
 use SoluzioneSoftware\LaravelAffiliate\Contracts\Network;
 

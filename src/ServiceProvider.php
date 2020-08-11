@@ -1,4 +1,5 @@
 <?php
+
 namespace SoluzioneSoftware\LaravelAffiliate;
 
 use Illuminate\Console\Scheduling\Schedule;

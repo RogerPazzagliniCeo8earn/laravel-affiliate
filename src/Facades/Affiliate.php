@@ -1,12 +1,10 @@
 <?php
 
-
 namespace SoluzioneSoftware\LaravelAffiliate\Facades;
 
-
 use Illuminate\Support\Facades\Facade;
-use SoluzioneSoftware\LaravelAffiliate\ProductsRequestBuilder;
-use SoluzioneSoftware\LaravelAffiliate\TransactionsRequestBuilder;
+use SoluzioneSoftware\LaravelAffiliate\Requests\ProductsRequestBuilder;
+use SoluzioneSoftware\LaravelAffiliate\Requests\TransactionsRequestBuilder;
 
 /**
  * @method static ProductsRequestBuilder products()

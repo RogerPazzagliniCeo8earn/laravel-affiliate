@@ -1,8 +1,6 @@
 <?php
 
-
 namespace SoluzioneSoftware\LaravelAffiliate;
-
 
 use ArrayAccess;
 use ArrayIterator;

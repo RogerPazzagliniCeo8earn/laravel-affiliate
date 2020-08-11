@@ -1,8 +1,6 @@
 <?php
 
-
 namespace SoluzioneSoftware\LaravelAffiliate\Traits;
-
 
 use Exception;
 use Illuminate\Container\Container;

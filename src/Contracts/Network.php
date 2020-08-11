@@ -1,14 +1,12 @@
 <?php
 
-
 namespace SoluzioneSoftware\LaravelAffiliate\Contracts;
-
 
 use DateTime;
 use Illuminate\Support\Collection;
-use SoluzioneSoftware\LaravelAffiliate\NetworkProductsRequestBuilder;
-use SoluzioneSoftware\LaravelAffiliate\NetworkTransactionsRequestBuilder;
 use SoluzioneSoftware\LaravelAffiliate\Objects\Product;
+use SoluzioneSoftware\LaravelAffiliate\Requests\NetworkProductsRequestBuilder;
+use SoluzioneSoftware\LaravelAffiliate\Requests\NetworkTransactionsRequestBuilder;
 
 interface Network
 {

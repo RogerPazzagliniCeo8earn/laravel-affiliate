@@ -1,8 +1,6 @@
 <?php
 
-
 namespace SoluzioneSoftware\LaravelAffiliate\Objects;
-
 
 use Carbon\Carbon;
 use Illuminate\Contracts\Support\Arrayable;

@@ -1,12 +1,11 @@
 <?php /** @noinspection PhpUndefinedClassInspection */
 
-
 namespace SoluzioneSoftware\LaravelAffiliate\Networks;
-
 
 use Carbon\Carbon;
 use DateTime;
 use Exception;
+use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\GuzzleException;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Arr;
@@ -41,9 +40,9 @@ class Awin extends AbstractNetwork implements Network
 
     const TRACKING_CODE_PARAM = 'pref1';
 
-    public function __construct()
+    public function __construct(ClientInterface $client)
     {
-        parent::__construct();
+        parent::__construct($client);
 
         $this->apiToken = Config::get('affiliate.credentials.awin.api_token');
         $this->publisherId = Config::get('affiliate.credentials.awin.publisher_id');

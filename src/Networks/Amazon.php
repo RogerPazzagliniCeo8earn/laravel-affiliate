@@ -1,12 +1,11 @@
 <?php
 
-
 namespace SoluzioneSoftware\LaravelAffiliate\Networks;
-
 
 use Amazon\ProductAdvertisingAPI\v1\ApiException;
 use DateTime;
 use Exception;
+use GuzzleHttp\ClientInterface;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
@@ -29,9 +28,9 @@ class Amazon extends AbstractNetwork implements Network
      */
     private $amazonClient;
 
-    public function __construct()
+    public function __construct(ClientInterface $client)
     {
-        parent::__construct();
+        parent::__construct($client);
 
         $this->amazonClient = AmazonProduct::setIdType(static::$idType);
     }
