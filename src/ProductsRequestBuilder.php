@@ -65,6 +65,7 @@ class ProductsRequestBuilder extends AbstractRequestBuilder
 
     protected function executeCountForNetwork(Network $network): int
     {
-        return $network->executeProductsCountRequest($this->getPrograms($network), $this->keyword, $this->languages);
+//        fixme: use lazy load and remove limit for 100 items
+        return min($network->executeProductsCountRequest($this->getPrograms($network), $this->keyword, $this->languages), 100);
     }
 }
