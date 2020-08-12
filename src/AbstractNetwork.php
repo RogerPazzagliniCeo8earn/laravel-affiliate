@@ -139,19 +139,19 @@ abstract class AbstractNetwork implements Network
      * @param array $transaction
      * @return Transaction
      */
-    abstract protected function transactionFromJson(array $transaction);
+    abstract public function transactionFromJson(array $transaction);
 
     /**
      * @param array $program
      * @return Program|null
      */
-    abstract protected function programFromJson(array $program);
+    abstract public function programFromJson(array $program);
 
     /**
      * @param array $product
      * @return Product
      */
-    abstract protected function productFromJson(array $product);
+    abstract public function productFromJson(array $product);
 
     /**
      * @param array $product

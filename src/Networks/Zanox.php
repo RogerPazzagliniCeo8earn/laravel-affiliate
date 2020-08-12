@@ -145,7 +145,7 @@ class Zanox extends AbstractNetwork implements Network
     /**
      * @inheritDoc
      */
-    protected function transactionFromJson(array $transaction)
+    public function transactionFromJson(array $transaction)
     {
         return new Transaction(
             $transaction['program']['id'],
@@ -178,12 +178,12 @@ class Zanox extends AbstractNetwork implements Network
        return $trackingCode;
     }
 
-    protected function programFromJson(array $program)
+    public function programFromJson(array $program)
     {
         return new Program($this, $program['@id'], $program['$']);
     }
 
-    protected function productFromJson(array $product)
+    public function productFromJson(array $product)
     {
         return new Product(
             $this->programFromJson($product['program']),

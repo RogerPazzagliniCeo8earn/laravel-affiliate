@@ -128,7 +128,7 @@ class Amazon extends AbstractNetwork implements Network
      * @inheritDoc
      * @throws Exception
      */
-    protected function transactionFromJson(array $transaction)
+    public function transactionFromJson(array $transaction)
     {
         throw new Exception('Not implemented');
     }
@@ -137,7 +137,7 @@ class Amazon extends AbstractNetwork implements Network
      * @inheritDoc
      * @return null
      */
-    protected function programFromJson(array $program)
+    public function programFromJson(array $program)
     {
         return null;
     }
@@ -145,7 +145,7 @@ class Amazon extends AbstractNetwork implements Network
     /**
      * @inheritDoc
      */
-    protected function productFromJson(array $product)
+    public function productFromJson(array $product)
     {
         /** @var array|null $offer */
         $offer = Arr::first(Arr::get($product, 'Offers.Listings')); // fixme: what about other offers?

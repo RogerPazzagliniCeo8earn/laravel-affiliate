@@ -162,7 +162,7 @@ class Awin extends AbstractNetwork implements Network
     /**
      * @inheritDoc
      */
-    protected function transactionFromJson(array $transaction)
+    public function transactionFromJson(array $transaction)
     {
         return new Transaction(
             $transaction['advertiserId'],
@@ -185,7 +185,7 @@ class Awin extends AbstractNetwork implements Network
         return Arr::get($transaction, 'clickRefs.' . static::TRACKING_CODE_PARAM);
     }
 
-    protected function programFromJson(array $program)
+    public function programFromJson(array $program)
     {
         return new Program(
             $this,
@@ -194,7 +194,7 @@ class Awin extends AbstractNetwork implements Network
         );
     }
 
-    protected function productFromJson(array $product)
+    public function productFromJson(array $product)
     {
         return new ProductObject(
             $this->programFromJson($product['feed']),
