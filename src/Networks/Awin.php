@@ -5,7 +5,6 @@ namespace SoluzioneSoftware\LaravelAffiliate\Networks;
 use Carbon\Carbon;
 use DateTime;
 use Exception;
-use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\GuzzleException;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Arr;
@@ -16,10 +15,13 @@ use Illuminate\Support\Facades\DB;
 use RuntimeException;
 use SoluzioneSoftware\LaravelAffiliate\AbstractNetwork;
 use SoluzioneSoftware\LaravelAffiliate\Contracts\Network;
+use SoluzioneSoftware\LaravelAffiliate\Enums\ValueType;
 use SoluzioneSoftware\LaravelAffiliate\Models\Product;
+use SoluzioneSoftware\LaravelAffiliate\Objects\CommissionRate;
 use SoluzioneSoftware\LaravelAffiliate\Objects\Product as ProductObject;
 use SoluzioneSoftware\LaravelAffiliate\Objects\Program;
 use SoluzioneSoftware\LaravelAffiliate\Objects\Transaction;
+use Throwable;
 
 class Awin extends AbstractNetwork implements Network
 {
@@ -40,9 +42,9 @@ class Awin extends AbstractNetwork implements Network
 
     const TRACKING_CODE_PARAM = 'pref1';
 
-    public function __construct(ClientInterface $client)
+    public function __construct()
     {
-        parent::__construct($client);
+        parent::__construct();
 
         $this->apiToken = Config::get('affiliate.credentials.awin.api_token');
         $this->publisherId = Config::get('affiliate.credentials.awin.publisher_id');
@@ -161,6 +163,37 @@ class Awin extends AbstractNetwork implements Network
 
     /**
      * @inheritDoc
+     * @throws GuzzleException
+     * @throws Throwable
+     */
+    public function executeCommissionRatesRequest(
+        string $programId,
+        int $page = 1,
+        int $perPage = 100
+    ): Collection
+    {
+//        fixme: consider pagination params
+        $this->requestEndPoint = "/publishers/{$this->publisherId}/commissiongroups";
+
+        $this->queryParams['advertiserId'] = $programId;
+
+        $response = $this->callApi();
+        $statusCode = $response->getStatusCode();
+        if ($statusCode !== 200){
+            throw new RuntimeException("Expected response status code 200. Got $statusCode.");
+        }
+
+        $commissionGroups = new Collection();
+        $body = json_decode($response->getBody(), true);
+        foreach ((array)$body['commissionGroups'] as $commissionGroup) {
+            $commissionGroups->push($this->commissionRateFromJson($commissionGroup));
+        }
+
+        return $commissionGroups;
+    }
+
+    /**
+     * @inheritDoc
      */
     public function transactionFromJson(array $transaction)
     {
@@ -207,6 +240,26 @@ class Awin extends AbstractNetwork implements Network
             $this->getDetailsLink($product),
             $this->getTrackingLink($product),
             $product
+        );
+    }
+
+    public function commissionRateFromJson(array $commissionRate): CommissionRate
+    {
+        if ($commissionRate['type'] === 'fix'){
+            $type = 'fixed';
+            $value = $commissionRate['amount'];
+        }
+        else{
+            $type = $commissionRate['type'];
+            $value = $commissionRate['percentage'];
+        }
+
+        return new CommissionRate(
+            $commissionRate['groupId'],
+            $commissionRate['groupName'],
+            new ValueType($type),
+            (float)$value,
+            $commissionRate
         );
     }
 

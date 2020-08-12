@@ -5,7 +5,6 @@ namespace SoluzioneSoftware\LaravelAffiliate\Networks;
 use Amazon\ProductAdvertisingAPI\v1\ApiException;
 use DateTime;
 use Exception;
-use GuzzleHttp\ClientInterface;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
@@ -13,6 +12,7 @@ use Revolution\Amazon\ProductAdvertising\AmazonClient;
 use Revolution\Amazon\ProductAdvertising\Facades\AmazonProduct;
 use SoluzioneSoftware\LaravelAffiliate\AbstractNetwork;
 use SoluzioneSoftware\LaravelAffiliate\Contracts\Network;
+use SoluzioneSoftware\LaravelAffiliate\Objects\CommissionRate;
 use SoluzioneSoftware\LaravelAffiliate\Objects\Product;
 
 class Amazon extends AbstractNetwork implements Network
@@ -28,9 +28,9 @@ class Amazon extends AbstractNetwork implements Network
      */
     private $amazonClient;
 
-    public function __construct(ClientInterface $client)
+    public function __construct()
     {
-        parent::__construct($client);
+        parent::__construct();
 
         $this->amazonClient = AmazonProduct::setIdType(static::$idType);
     }
@@ -128,6 +128,19 @@ class Amazon extends AbstractNetwork implements Network
      * @inheritDoc
      * @throws Exception
      */
+    public function executeCommissionRatesRequest(
+        string $programId,
+        int $page = 1,
+        int $perPage = 100
+    ): Collection
+    {
+        throw new Exception('Not implemented');
+    }
+
+    /**
+     * @inheritDoc
+     * @throws Exception
+     */
     public function transactionFromJson(array $transaction)
     {
         throw new Exception('Not implemented');
@@ -162,6 +175,16 @@ class Amazon extends AbstractNetwork implements Network
             $this->getTrackingLink($product),
             $product
         );
+    }
+
+    /**
+     * @param  array  $commissionRate
+     * @return CommissionRate
+     * @throws Exception
+     */
+    public function commissionRateFromJson(array $commissionRate): CommissionRate
+    {
+        throw new Exception('Not implemented');
     }
 
     protected function getDetailsLink(array $product)

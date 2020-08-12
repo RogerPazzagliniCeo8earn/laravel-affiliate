@@ -3,12 +3,14 @@
 namespace SoluzioneSoftware\LaravelAffiliate;
 
 use DateTime;
-use GuzzleHttp\Client;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\GuzzleException;
+use Illuminate\Container\Container;
+use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Support\Collection;
 use Psr\Http\Message\ResponseInterface;
 use SoluzioneSoftware\LaravelAffiliate\Contracts\Network;
+use SoluzioneSoftware\LaravelAffiliate\Objects\CommissionRate;
 use SoluzioneSoftware\LaravelAffiliate\Objects\Product;
 use SoluzioneSoftware\LaravelAffiliate\Objects\Program;
 use SoluzioneSoftware\LaravelAffiliate\Objects\Transaction;
@@ -42,9 +44,12 @@ abstract class AbstractNetwork implements Network
      */
     protected $trackingCode;
 
-    public function __construct(ClientInterface $client)
+    /**
+     * @throws BindingResolutionException
+     */
+    public function __construct()
     {
-        $this->client = $client;
+        $this->client = Container::getInstance()->make('affiliate.client');
     }
 
     /**
@@ -52,7 +57,7 @@ abstract class AbstractNetwork implements Network
      */
     public static function products(): NetworkProductsRequestBuilder
     {
-        return new NetworkProductsRequestBuilder(new static(new Client()));
+        return new NetworkProductsRequestBuilder(new static());
     }
 
     /**
@@ -77,7 +82,7 @@ abstract class AbstractNetwork implements Network
      */
     public static function getProduct(string $id, ?string $trackingCode = null): ?Product
     {
-        return (new static(new Client()))->executeGetProduct($id, $trackingCode);
+        return (new static())->executeGetProduct($id, $trackingCode);
     }
 
     /**
@@ -85,7 +90,7 @@ abstract class AbstractNetwork implements Network
      */
     public static function transactions()
     {
-        return new NetworkTransactionsRequestBuilder(new static(new Client()));
+        return new NetworkTransactionsRequestBuilder(new static());
     }
 
     /**
@@ -102,6 +107,15 @@ abstract class AbstractNetwork implements Network
         ?DateTime $toDateTime = null,
         int $page = 1,
         int $perPage = 10
+    ): Collection;
+
+    /**
+     * @inheritDoc
+     */
+    abstract public function executeCommissionRatesRequest(
+        string $programId,
+        int $page = 1,
+        int $perPage = 100
     ): Collection;
 
     /**
@@ -152,6 +166,8 @@ abstract class AbstractNetwork implements Network
      * @return Product
      */
     abstract public function productFromJson(array $product);
+
+    abstract public function commissionRateFromJson(array $commissionRate): CommissionRate;
 
     /**
      * @param array $product

@@ -9,6 +9,7 @@ use SoluzioneSoftware\LaravelAffiliate\Contracts\Network;
 use SoluzioneSoftware\LaravelAffiliate\Networks\Amazon;
 use SoluzioneSoftware\LaravelAffiliate\Networks\Awin;
 use SoluzioneSoftware\LaravelAffiliate\Networks\Zanox;
+use SoluzioneSoftware\LaravelAffiliate\Paginator;
 use SoluzioneSoftware\LaravelAffiliate\Traits\InteractsWithThrowable;
 
 abstract class AbstractRequestBuilder

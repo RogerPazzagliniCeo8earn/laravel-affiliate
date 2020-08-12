@@ -9,6 +9,7 @@ return [
         'zanox' => [
             'connect_id' => env('ZANOX_CONNECT_ID'),
             'secret_key' => env('ZANOX_SECRET_KEY'),
+            'ad_space_id' => env('ZANOX_AD_SPACE_ID'),
         ],
     ],
     'db' => [

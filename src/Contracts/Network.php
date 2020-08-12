@@ -84,4 +84,16 @@ interface Network
         int $page = 1,
         int $perPage = 10
     ): Collection;
+
+    /**
+     * @param  string  $programId
+     * @param  int  $page
+     * @param  int  $perPage
+     * @return Collection
+     */
+    public function executeCommissionRatesRequest(
+        string $programId,
+        int $page = 1,
+        int $perPage = 100
+    ): Collection;
 }

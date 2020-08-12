@@ -2,6 +2,7 @@
 
 namespace SoluzioneSoftware\LaravelAffiliate;
 
+use GuzzleHttp\Client;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\ServiceProvider as BaseServiceProvider;
@@ -53,10 +54,23 @@ class ServiceProvider extends BaseServiceProvider
      */
     public function register()
     {
+        $this->registerAffiliate();
+        $this->registerClient();
+    }
+
+    private function registerAffiliate()
+    {
         $this->app->singleton(Affiliate::class, function () {
             return new Affiliate();
         });
 
         $this->app->alias(Affiliate::class, 'affiliate');
+    }
+
+    private function registerClient()
+    {
+        $this->app->singleton('affiliate.client', function () {
+            return new Client();
+        });
     }
 }

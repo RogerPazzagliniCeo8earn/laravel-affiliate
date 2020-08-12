@@ -5,7 +5,6 @@ namespace SoluzioneSoftware\LaravelAffiliate\Networks;
 use Carbon\Carbon;
 use DateTime;
 use Exception;
-use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\GuzzleException;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
@@ -14,6 +13,8 @@ use Illuminate\Support\Facades\Date;
 use RuntimeException;
 use SoluzioneSoftware\LaravelAffiliate\AbstractNetwork;
 use SoluzioneSoftware\LaravelAffiliate\Contracts\Network;
+use SoluzioneSoftware\LaravelAffiliate\Enums\ValueType;
+use SoluzioneSoftware\LaravelAffiliate\Objects\CommissionRate;
 use SoluzioneSoftware\LaravelAffiliate\Objects\Product;
 use SoluzioneSoftware\LaravelAffiliate\Objects\Program;
 use SoluzioneSoftware\LaravelAffiliate\Objects\Transaction;
@@ -35,14 +36,20 @@ class Zanox extends AbstractNetwork implements Network
      */
     private $secretKey;
 
+    /**
+     * @var string
+     */
+    private $adSpaceId;
+
     const TRACKING_CODE_PARAM = 'zpar0';
 
-    public function __construct(ClientInterface $client)
+    public function __construct()
     {
-        parent::__construct($client);
+        parent::__construct();
 
         $this->connectId = Config::get('affiliate.credentials.zanox.connect_id');
         $this->secretKey = Config::get('affiliate.credentials.zanox.secret_key');
+        $this->adSpaceId = Config::get('affiliate.credentials.zanox.ad_space_id');
     }
 
     /**
@@ -144,6 +151,33 @@ class Zanox extends AbstractNetwork implements Network
 
     /**
      * @inheritDoc
+     * @throws GuzzleException
+     */
+    public function executeCommissionRatesRequest(
+        string $programId,
+        int $page = 1,
+        int $perPage = 100
+    ): Collection
+    {
+        $this->requestEndPoint = "/programapplications/program/$programId/adspace/{$this->adSpaceId}/trackingcategories";
+
+        $response = $this->callApi();
+
+        $statusCode = $response->getStatusCode();
+        if ($statusCode !== 200){
+            throw new RuntimeException("Expected response status code 200. Got $statusCode.");
+        }
+
+        $responseBody = $response->getBody();
+        $items = new Collection(Arr::get(json_decode($responseBody, true), 'trackingCategoryItem.trackingCategoryItem', []));
+
+        return $items->map(function (array $trackingCategoryItem){
+            return $this->commissionRateFromJson($trackingCategoryItem);
+        });
+    }
+
+    /**
+     * @inheritDoc
      */
     public function transactionFromJson(array $transaction)
     {
@@ -196,6 +230,26 @@ class Zanox extends AbstractNetwork implements Network
             $this->getDetailsLink($product),
             $this->getTrackingLink($product),
             $product
+        );
+    }
+
+    public function commissionRateFromJson(array $commissionRate): CommissionRate
+    {
+        if ($commissionRate['saleFixed'] > 0){
+            $type = 'fixed';
+            $value = $commissionRate['saleFixed'];
+        }
+        else{
+            $type = 'percentage';
+            $value = $commissionRate['salePercent'];
+        }
+
+        return new CommissionRate(
+            $commissionRate['@id'],
+            $commissionRate['name'],
+            new ValueType($type),
+            (float)$value,
+            $commissionRate
         );
     }
 
