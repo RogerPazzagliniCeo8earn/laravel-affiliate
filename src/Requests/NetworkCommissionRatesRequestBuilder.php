@@ -2,7 +2,7 @@
 
 namespace SoluzioneSoftware\LaravelAffiliate\Requests;
 
-use Exception;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use SoluzioneSoftware\LaravelAffiliate\Contracts\Network;
 
@@ -25,20 +25,12 @@ class NetworkCommissionRatesRequestBuilder extends CommissionRatesRequestBuilder
 
     /**
      * @inheritDoc
-     * @throws Exception
      */
     protected function executeGet(int $page, int $perPage): Collection
     {
-        throw new Exception('Not implemented');
-    }
-
-    /**
-     * @return int
-     * @throws Exception
-     */
-    protected function executeCount(): int
-    {
-        throw new Exception('Not implemented');
+        return $this->network->executeCommissionRatesRequest(
+            Arr::first($this->getPrograms($this->network)), $page, $perPage
+        );
     }
 
     /**

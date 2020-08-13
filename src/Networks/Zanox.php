@@ -171,8 +171,8 @@ class Zanox extends AbstractNetwork implements Network
         $responseBody = $response->getBody();
         $items = new Collection(Arr::get(json_decode($responseBody, true), 'trackingCategoryItem.trackingCategoryItem', []));
 
-        return $items->map(function (array $trackingCategoryItem){
-            return $this->commissionRateFromJson($trackingCategoryItem);
+        return $items->map(function (array $trackingCategoryItem) use ($programId) {
+            return $this->commissionRateFromJson($programId, $trackingCategoryItem);
         });
     }
 
@@ -233,7 +233,7 @@ class Zanox extends AbstractNetwork implements Network
         );
     }
 
-    public function commissionRateFromJson(array $commissionRate): CommissionRate
+    public function commissionRateFromJson(string $programId, array $commissionRate): CommissionRate
     {
         if ($commissionRate['saleFixed'] > 0){
             $type = 'fixed';
@@ -245,6 +245,7 @@ class Zanox extends AbstractNetwork implements Network
         }
 
         return new CommissionRate(
+            $programId,
             $commissionRate['@id'],
             $commissionRate['name'],
             new ValueType($type),

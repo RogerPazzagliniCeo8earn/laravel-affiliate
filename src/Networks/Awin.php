@@ -186,7 +186,7 @@ class Awin extends AbstractNetwork implements Network
         $commissionGroups = new Collection();
         $body = json_decode($response->getBody(), true);
         foreach ((array)$body['commissionGroups'] as $commissionGroup) {
-            $commissionGroups->push($this->commissionRateFromJson($commissionGroup));
+            $commissionGroups->push($this->commissionRateFromJson($programId, $commissionGroup));
         }
 
         return $commissionGroups;
@@ -243,7 +243,7 @@ class Awin extends AbstractNetwork implements Network
         );
     }
 
-    public function commissionRateFromJson(array $commissionRate): CommissionRate
+    public function commissionRateFromJson(string $programId, array $commissionRate): CommissionRate
     {
         if ($commissionRate['type'] === 'fix'){
             $type = 'fixed';
@@ -255,6 +255,7 @@ class Awin extends AbstractNetwork implements Network
         }
 
         return new CommissionRate(
+            $programId,
             $commissionRate['groupId'],
             $commissionRate['groupName'],
             new ValueType($type),

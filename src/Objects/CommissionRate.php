@@ -10,6 +10,11 @@ class CommissionRate implements Arrayable
     /**
      * @var string
      */
+    public $programId;
+
+    /**
+     * @var string
+     */
     public $id;
 
     /**
@@ -32,8 +37,9 @@ class CommissionRate implements Arrayable
      */
     public $original;
 
-    public function __construct(string $id, string $name, ValueType $type, float $value, array $original)
+    public function __construct(string $programId, string $id, string $name, ValueType $type, float $value, array $original)
     {
+        $this->programId = $programId;
         $this->id = $id;
         $this->name = $name;
         $this->type = $type;
@@ -44,6 +50,7 @@ class CommissionRate implements Arrayable
     public function toArray()
     {
         return [
+            'program_id' => $this->programId,
             'id' => $this->id,
             'name' => $this->name,
             'type' => $this->type->value(),

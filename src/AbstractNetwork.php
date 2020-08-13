@@ -167,7 +167,7 @@ abstract class AbstractNetwork implements Network
      */
     abstract public function productFromJson(array $product);
 
-    abstract public function commissionRateFromJson(array $commissionRate): CommissionRate;
+    abstract public function commissionRateFromJson(string $programId, array $commissionRate): CommissionRate;
 
     /**
      * @param array $product

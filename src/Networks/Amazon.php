@@ -178,11 +178,12 @@ class Amazon extends AbstractNetwork implements Network
     }
 
     /**
+     * @param  string  $programId
      * @param  array  $commissionRate
      * @return CommissionRate
      * @throws Exception
      */
-    public function commissionRateFromJson(array $commissionRate): CommissionRate
+    public function commissionRateFromJson(string $programId, array $commissionRate): CommissionRate
     {
         throw new Exception('Not implemented');
     }
