@@ -113,6 +113,18 @@ class Amazon extends AbstractNetwork implements Network
      * @inheritDoc
      * @throws Exception
      */
+    public function executeTransactionsCountRequest(
+        ?array $programs = null,
+        ?DateTime $fromDateTime = null,
+        ?DateTime $toDateTime = null
+    ): int
+    {
+        throw new Exception('Not implemented');
+    }
+    /**
+     * @inheritDoc
+     * @throws Exception
+     */
     public function executeTransactionsRequest(
         ?array $programs = null,
         ?DateTime $fromDateTime = null,

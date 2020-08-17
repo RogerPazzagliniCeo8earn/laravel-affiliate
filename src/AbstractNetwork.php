@@ -112,6 +112,15 @@ abstract class AbstractNetwork implements Network
     /**
      * @inheritDoc
      */
+    abstract public function executeTransactionsCountRequest(
+        ?array $programs = null,
+        ?DateTime $fromDateTime = null,
+        ?DateTime $toDateTime = null
+    ): int;
+
+    /**
+     * @inheritDoc
+     */
     abstract public function executeCommissionRatesRequest(
         string $programId,
         int $page = 1,

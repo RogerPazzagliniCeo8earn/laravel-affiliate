@@ -129,6 +129,19 @@ class Awin extends AbstractNetwork implements Network
     /**
      * @inheritDoc
      * @throws GuzzleException
+     */
+    public function executeTransactionsCountRequest(
+        ?array $programs = null,
+        ?DateTime $fromDateTime = null,
+        ?DateTime $toDateTime = null
+    ): int
+    {
+        return $this->executeTransactionsRequest($programs, $fromDateTime, $toDateTime)->count();
+    }
+
+    /**
+     * @inheritDoc
+     * @throws GuzzleException
      * @throws Exception
      */
     public function executeTransactionsRequest(
@@ -162,7 +175,7 @@ class Awin extends AbstractNetwork implements Network
         }
 
         $transactions = new Collection();
-        foreach (json_decode($response->getBody()) as $transaction) {
+        foreach (json_decode($response->getBody(), true) as $transaction) {
             $transactions->push($this->transactionFromJson($transaction));
         }
         return $transactions;

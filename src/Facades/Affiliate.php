@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Facade;
 use SoluzioneSoftware\LaravelAffiliate\Contracts\Network;
 use SoluzioneSoftware\LaravelAffiliate\Requests\CommissionRatesRequestBuilder;
 use SoluzioneSoftware\LaravelAffiliate\Requests\NetworkCommissionRatesRequestBuilder;
+use SoluzioneSoftware\LaravelAffiliate\Requests\NetworkTransactionsRequestBuilder;
 use SoluzioneSoftware\LaravelAffiliate\Requests\ProductsRequestBuilder;
 use SoluzioneSoftware\LaravelAffiliate\Requests\TransactionsRequestBuilder;
 
@@ -14,6 +15,7 @@ use SoluzioneSoftware\LaravelAffiliate\Requests\TransactionsRequestBuilder;
  * @method static NetworkCommissionRatesRequestBuilder networkCommissionRates(Network $network)
  * @method static ProductsRequestBuilder products()
  * @method static TransactionsRequestBuilder transactions()
+ * @method static NetworkTransactionsRequestBuilder networkTransactions(Network $network)
  *
  * @see \SoluzioneSoftware\LaravelAffiliate\Affiliate
  */

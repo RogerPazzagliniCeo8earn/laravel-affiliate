@@ -46,6 +46,7 @@ class TransactionsRequestBuilder extends AbstractRequestBuilder
      */
     protected function executeCountForNetwork(Network $network): int
     {
-        throw new Exception('Not implemented');
+//        fixme: use lazy load and remove limit for 100 items
+        return min($network->executeProductsCountRequest($this->getPrograms($network), $this->keyword, $this->languages), 100);
     }
 }

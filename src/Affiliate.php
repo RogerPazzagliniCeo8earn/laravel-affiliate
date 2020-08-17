@@ -5,6 +5,7 @@ namespace SoluzioneSoftware\LaravelAffiliate;
 use SoluzioneSoftware\LaravelAffiliate\Contracts\Network;
 use SoluzioneSoftware\LaravelAffiliate\Requests\CommissionRatesRequestBuilder;
 use SoluzioneSoftware\LaravelAffiliate\Requests\NetworkCommissionRatesRequestBuilder;
+use SoluzioneSoftware\LaravelAffiliate\Requests\NetworkTransactionsRequestBuilder;
 use SoluzioneSoftware\LaravelAffiliate\Requests\ProductsRequestBuilder;
 use SoluzioneSoftware\LaravelAffiliate\Requests\TransactionsRequestBuilder;
 
@@ -41,5 +42,14 @@ class Affiliate
     public function networkCommissionRates(Network $network)
     {
         return new NetworkCommissionRatesRequestBuilder($network);
+    }
+
+    /**
+     * @param  Network  $network
+     * @return NetworkTransactionsRequestBuilder
+     */
+    public function networkTransactions(Network $network)
+    {
+        return new NetworkTransactionsRequestBuilder($network);
     }
 }

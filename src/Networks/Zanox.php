@@ -136,6 +136,23 @@ class Zanox extends AbstractNetwork implements Network
         return $this->productFromJson($product);
     }
 
+
+    /**
+     * @inheritDoc
+     * @throws GuzzleException
+     */
+    public function executeTransactionsCountRequest(
+        ?array $programs = null,
+        ?DateTime $fromDateTime = null,
+        ?DateTime $toDateTime = null
+    ): int
+    {
+        $leads = $this->executeReportsRequest('lead', $programs, $fromDateTime, $toDateTime, 1, 1);
+        $sales = $this->executeReportsRequest('sale', $programs, $fromDateTime, $toDateTime, 1, 1);
+
+        return $leads->count() + $sales->count();
+    }
+
     /**
      * @inheritDoc
      * @throws GuzzleException
@@ -150,10 +167,8 @@ class Zanox extends AbstractNetwork implements Network
         int $perPage = 10
     ): Collection
     {
-        // fixme: consider $page & $perPage parameters
-
-        $leads = $this->executeReportsRequest('leads', $programs, $fromDateTime, $toDateTime);
-        $sales = $this->executeReportsRequest('sales', $programs, $fromDateTime, $toDateTime);
+        $leads = $this->executeReportsRequest('lead', $programs, $fromDateTime, $toDateTime, $page, $perPage);
+        $sales = $this->executeReportsRequest('sale', $programs, $fromDateTime, $toDateTime, $page, $perPage);
         return $leads->merge($sales);
     }
 
@@ -316,6 +331,7 @@ class Zanox extends AbstractNetwork implements Network
             $this->queryParams['programs'] = implode(',', $programs);
         }
 
+        // fixme: $page should start from 0?
         $this->queryParams['page'] = $page;
 
         if (!is_null($perPage)){
@@ -333,10 +349,12 @@ class Zanox extends AbstractNetwork implements Network
     }
 
     /**
-     * @param string $type possible values: leads, sales
-     * @param array|null $programs
-     * @param DateTime|null $fromDateTime
-     * @param DateTime|null $toDateTime
+     * @param  string  $type  possible values: leads, sales
+     * @param  array|null  $programs
+     * @param  DateTime|null  $fromDateTime
+     * @param  DateTime|null  $toDateTime
+     * @param  int  $page
+     * @param  int  $perPage
      * @return Collection
      * @throws GuzzleException
      * @throws Exception
@@ -347,7 +365,9 @@ class Zanox extends AbstractNetwork implements Network
         string $type,
         ?array $programs = null,
         ?DateTime $fromDateTime = null,
-        ?DateTime $toDateTime = null
+        ?DateTime $toDateTime = null,
+        int $page = 1,
+        int $perPage = 10
     )
     {
         $fromDateTime = (is_null($fromDateTime) ? Date::now() : new Carbon($fromDateTime))->startOfDay();
@@ -358,9 +378,16 @@ class Zanox extends AbstractNetwork implements Network
             $this->queryParams['programs'] = implode(',', $programs);
         }
 
+        // fixme: $page should start from 0?
+        $this->queryParams['page'] = $page;
+
+        if (!is_null($perPage)){
+            $this->queryParams['items'] = $perPage;
+        }
+
         $transactions = new Collection();
         while ($fromDateTime->lessThanOrEqualTo($toDateTime)){
-            $this->requestEndPoint = "/reports/{$type}/date/{$fromDateTime->format('Y-m-d')}";
+            $this->requestEndPoint = "/reports/{$type}s/date/{$fromDateTime->format('Y-m-d')}";
             $response = $this->callApi();
             $statusCode = $response->getStatusCode();
             if ($statusCode !== 200){
