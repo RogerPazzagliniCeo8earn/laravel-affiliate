@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\DB;
 use RuntimeException;
 use SoluzioneSoftware\LaravelAffiliate\AbstractNetwork;
 use SoluzioneSoftware\LaravelAffiliate\Contracts\Network;
+use SoluzioneSoftware\LaravelAffiliate\Enums\TransactionStatus;
 use SoluzioneSoftware\LaravelAffiliate\Enums\ValueType;
 use SoluzioneSoftware\LaravelAffiliate\Models\Product;
 use SoluzioneSoftware\LaravelAffiliate\Objects\CommissionRate;
@@ -41,6 +42,12 @@ class Awin extends AbstractNetwork implements Network
     private $publisherId;
 
     const TRACKING_CODE_PARAM = 'pref1';
+
+    const TRANSACTION_STATUS_MAPPING = [
+        'confirmed' => TransactionStatus::CONFIRMED,
+        'declined' => TransactionStatus::DECLINED,
+        'pending' => TransactionStatus::PENDING,
+    ];
 
     public function __construct()
     {
@@ -200,7 +207,7 @@ class Awin extends AbstractNetwork implements Network
         return new Transaction(
             $transaction['advertiserId'],
             $transaction['id'],
-            $transaction['commissionStatus'],
+            TransactionStatus::create(static::TRANSACTION_STATUS_MAPPING[$transaction['commissionStatus']]),
             floatval($transaction['commissionAmount']['amount']),
             $transaction['commissionAmount']['currency'],
             Carbon::parse($transaction['transactionDate']),

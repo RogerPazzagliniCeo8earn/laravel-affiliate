@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Date;
 use RuntimeException;
 use SoluzioneSoftware\LaravelAffiliate\AbstractNetwork;
 use SoluzioneSoftware\LaravelAffiliate\Contracts\Network;
+use SoluzioneSoftware\LaravelAffiliate\Enums\TransactionStatus;
 use SoluzioneSoftware\LaravelAffiliate\Enums\ValueType;
 use SoluzioneSoftware\LaravelAffiliate\Objects\CommissionRate;
 use SoluzioneSoftware\LaravelAffiliate\Objects\Product;
@@ -42,6 +43,13 @@ class Zanox extends AbstractNetwork implements Network
     private $adSpaceId;
 
     const TRACKING_CODE_PARAM = 'zpar0';
+
+    const TRANSACTION_STATUS_MAPPING = [
+        'approved' => TransactionStatus::CONFIRMED,
+        'confirmed' => TransactionStatus::CONFIRMED,
+        'open' => TransactionStatus::PENDING,
+        'rejected' => TransactionStatus::DECLINED,
+    ];
 
     public function __construct()
     {
@@ -182,9 +190,9 @@ class Zanox extends AbstractNetwork implements Network
     public function transactionFromJson(array $transaction)
     {
         return new Transaction(
-            $transaction['program']['id'],
-            $transaction['id'],
-            $transaction['reviewState'],
+            $transaction['program']['@id'],
+            $transaction['@id'],
+            TransactionStatus::create(static::TRANSACTION_STATUS_MAPPING[$transaction['reviewState']]),
             floatval($transaction['commission']),
             $transaction['currency'],
             Carbon::parse($transaction['trackingDate']),

@@ -4,6 +4,7 @@ namespace SoluzioneSoftware\LaravelAffiliate\Objects;
 
 use Carbon\Carbon;
 use Illuminate\Contracts\Support\Arrayable;
+use SoluzioneSoftware\LaravelAffiliate\Enums\TransactionStatus;
 
 class Transaction implements Arrayable
 {
@@ -18,9 +19,9 @@ class Transaction implements Arrayable
     public $id;
 
     /**
-     * @var string
+     * @var TransactionStatus
      */
-    public $status; // fixme: use enums
+    public $status;
 
     /**
      * @var float
@@ -47,14 +48,16 @@ class Transaction implements Arrayable
      */
     public $original;
 
-    public function __construct(?string $programId,
-                                string $id,
-                                string $status,
-                                float $amount,
-                                string $currency,
-                                Carbon $dateTime,
-                                ?string $trackingCode,
-                                array $original)
+    public function __construct(
+        ?string $programId,
+        string $id,
+        TransactionStatus $status,
+        float $amount,
+        string $currency,
+        Carbon $dateTime,
+        ?string $trackingCode,
+        array $original
+    )
     {
         $this->programId = $programId;
         $this->id = $id;
@@ -71,7 +74,7 @@ class Transaction implements Arrayable
         return [
             'program_id' => $this->programId,
             'id' => $this->id,
-            'status' => $this->status,
+            'status' => $this->status->value(),
             'amount' => $this->amount,
             'currency' => $this->currency,
             'date_time' => $this->dateTime,
