@@ -68,7 +68,7 @@ class Zanox extends AbstractNetwork implements Network
         ?array $programs = null,
         ?string $keyword = null,
         ?array $languages = null
-    )
+    ): int
     {
         $result = $this->searchProducts($keyword, $programs, $languages, 1, 1);
 

@@ -70,7 +70,7 @@ class Awin extends AbstractNetwork implements Network
         ?array $programs = null,
         ?string $keyword = null,
         ?array $languages = null
-    )
+    ): int
     {
         return $this
             ->getProductQueryBuilder($keyword, $programs, $languages)

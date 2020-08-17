@@ -37,7 +37,7 @@ interface Network
         ?array $programs = null,
         ?string $keyword = null,
         ?array $languages = null
-    );
+    ): int;
 
     /**
      * @param  string[]|null  $programs
@@ -68,6 +68,18 @@ interface Network
      * @return NetworkTransactionsRequestBuilder
      */
     public static function transactions();
+
+    /**
+     * @param  string[]|null  $programs
+     * @param  DateTime|null  $fromDateTime
+     * @param  DateTime|null  $toDateTime
+     * @return int
+     */
+    public function executeTransactionsCountRequest(
+        ?array $programs = null,
+        ?DateTime $fromDateTime = null,
+        ?DateTime $toDateTime = null
+    ): int;
 
     /**
      * @param  array|null  $programs
