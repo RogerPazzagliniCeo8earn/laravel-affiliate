@@ -48,4 +48,9 @@ class Feed extends Model
     {
         return Config::get('affiliate.db.tables.feeds');
     }
+
+    public function products()
+    {
+        return $this->hasMany(Product::class);
+    }
 }
