@@ -2,8 +2,7 @@
 
 namespace SoluzioneSoftware\LaravelAffiliate\Console;
 
-use Maatwebsite\Excel\Facades\Excel;
-use SoluzioneSoftware\LaravelAffiliate\Imports\FeedsImport;
+use SoluzioneSoftware\LaravelAffiliate\Facades\Affiliate;
 
 class Feeds extends Command
 {
@@ -26,23 +25,6 @@ class Feeds extends Command
      */
     public function handle()
     {
-        $listPath = $this->path("feeds.csv");
-        $this->downloadFeeds($listPath);
-        $this->importFeeds($listPath);
-    }
-
-    private function downloadFeeds(string $path)
-    {
-        $url = "https://productdata.awin.com"
-            . "/datafeed/list"
-            . "/apikey/{$this->apiKey()}";
-
-        $this->client->get($url, ['sink' => $path]);
-    }
-
-    private function importFeeds(string $path)
-    {
-//        fixme: delete old
-        Excel::import(new FeedsImport(), $path);
+        Affiliate::updateFeeds();
     }
 }

@@ -16,6 +16,7 @@ use SoluzioneSoftware\LaravelAffiliate\Requests\TransactionsRequestBuilder;
  * @method static ProductsRequestBuilder products()
  * @method static TransactionsRequestBuilder transactions()
  * @method static NetworkTransactionsRequestBuilder networkTransactions(Network $network)
+ * @method static void updateFeeds()
  *
  * @see \SoluzioneSoftware\LaravelAffiliate\Affiliate
  */
