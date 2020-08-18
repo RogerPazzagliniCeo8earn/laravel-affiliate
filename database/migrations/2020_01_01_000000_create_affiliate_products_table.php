@@ -1,20 +1,21 @@
 <?php
 
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Database\Migrations\Migration;
+use SoluzioneSoftware\LaravelAffiliate\Models\Product;
 
 class CreateAffiliateProductsTable extends Migration
 {
     public function getConnection()
     {
-        return Config::get('affiliate.db.connection');
+        return (new Product())->getConnectionName();
     }
 
     public static function getTable()
     {
-        return Config::get('affiliate.db.tables.products');
+        return (new Product())->getTable();
     }
 
     /**

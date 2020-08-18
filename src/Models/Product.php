@@ -35,7 +35,7 @@ class Product extends Model
 
     public function getTable()
     {
-        return Config::get('affiliate.db.tables.products');
+        return Config::get('affiliate.db.tables.products', parent::getTable());
     }
 
     public function feed()

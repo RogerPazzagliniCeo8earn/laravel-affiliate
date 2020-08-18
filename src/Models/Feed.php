@@ -49,7 +49,7 @@ class Feed extends Model
 
     public function getTable()
     {
-        return Config::get('affiliate.db.tables.feeds');
+        return Config::get('affiliate.db.tables.feeds', parent::getTable());
     }
 
     public function products()

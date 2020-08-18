@@ -2,19 +2,19 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Schema;
+use SoluzioneSoftware\LaravelAffiliate\Models\Feed;
 
 class CreateAffiliateFeedsTable extends Migration
 {
     public function getConnection()
     {
-        return Config::get('affiliate.db.connection');
+        return (new Feed())->getConnectionName();
     }
 
     public static function getTable()
     {
-        return Config::get('affiliate.db.tables.feeds');
+        return (new Feed())->getTable();
     }
 
     /**
