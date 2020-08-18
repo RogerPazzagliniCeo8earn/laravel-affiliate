@@ -22,6 +22,7 @@ class FeedsImport implements WithHeadingRow, OnEachRow
         $data['region'] = $data['primary_region'];
         $data['language'] = (new ISO639)->code1ByLanguage($data['language']);
         $data['imported_at'] = $data['last_imported']; // fixme: consider timezone
+        $data['products_count'] = $data['no_of_products'];
 
         Feed::query()->updateOrCreate(Arr::only($data, 'feed_id'), $data);
     }

@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Config;
  * @property string language
  * @property DateTime|null products_updated_at
  * @property DateTime|null imported_at
+ * @property int products_count
  */
 class Feed extends Model
 {
@@ -28,10 +29,12 @@ class Feed extends Model
         'language',
         'products_updated_at',
         'imported_at',
+        'products_count',
     ];
 
     protected $casts = [
         'joined' => 'boolean',
+        'products_count' => 'integer',
     ];
 
     protected $dates = [
