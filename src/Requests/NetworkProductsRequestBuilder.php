@@ -47,4 +47,12 @@ class NetworkProductsRequestBuilder extends ProductsRequestBuilder
     {
         return count($this->programs) ? $this->programs : null;
     }
+
+    /**
+     * @inheritDoc
+     */
+    protected function getNetworks()
+    {
+        return [$this->network];
+    }
 }

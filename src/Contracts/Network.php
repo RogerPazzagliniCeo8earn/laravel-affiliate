@@ -99,6 +99,12 @@ interface Network
 
     /**
      * @param  string  $programId
+     * @return int
+     */
+    public function executeCommissionRatesCountRequest(string $programId): int;
+
+    /**
+     * @param  string  $programId
      * @param  int  $page
      * @param  int  $perPage
      * @return Collection

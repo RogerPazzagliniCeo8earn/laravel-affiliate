@@ -140,6 +140,15 @@ class Amazon extends AbstractNetwork implements Network
      * @inheritDoc
      * @throws Exception
      */
+    public function executeCommissionRatesCountRequest(string $programId): int
+    {
+        throw new Exception('Not implemented');
+    }
+
+    /**
+     * @inheritDoc
+     * @throws Exception
+     */
     public function executeCommissionRatesRequest(
         string $programId,
         int $page = 1,

@@ -16,7 +16,7 @@ class ZanoxTest extends TestCase
      * @test
      * @throws GuzzleException
      */
-    public function execute_commission_groups_request()
+    public function execute_commission_rates_request()
     {
         $programId = "1234";
 

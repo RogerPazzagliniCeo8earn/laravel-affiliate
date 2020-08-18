@@ -18,7 +18,7 @@ class AwinTest extends TestCase
      * @throws GuzzleException
      * @throws Throwable
      */
-    public function execute_commission_groups_request()
+    public function execute_commission_rates_request()
     {
         $advertiserId = 1001;
 

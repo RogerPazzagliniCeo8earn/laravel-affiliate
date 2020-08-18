@@ -40,4 +40,12 @@ class NetworkTransactionsRequestBuilder extends TransactionsRequestBuilder
     {
         return count($this->programs) ? $this->programs : null;
     }
+
+    /**
+     * @inheritDoc
+     */
+    protected function getNetworks()
+    {
+        return [$this->network];
+    }
 }

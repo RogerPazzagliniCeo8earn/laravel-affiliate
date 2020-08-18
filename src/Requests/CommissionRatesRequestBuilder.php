@@ -13,6 +13,7 @@ class CommissionRatesRequestBuilder extends AbstractRequestBuilder
      */
     protected function executeGetForNetwork(Network $network, int $page, int $perPage)
     {
+//         fixme: what about other programs?
         return $network->executeCommissionRatesRequest(
             Arr::first($this->getPrograms($network)), $page, $perPage
         );
@@ -25,6 +26,7 @@ class CommissionRatesRequestBuilder extends AbstractRequestBuilder
      */
     protected function executeCountForNetwork(Network $network): int
     {
-        throw new Exception('Not implemented');
+//         fixme: what about other programs?
+        return $network->executeCommissionRatesCountRequest(Arr::first($this->getPrograms($network)));
     }
 }

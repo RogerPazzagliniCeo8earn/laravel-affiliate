@@ -175,6 +175,17 @@ class Zanox extends AbstractNetwork implements Network
     /**
      * @inheritDoc
      * @throws GuzzleException
+     * @throws Throwable
+     */
+    public function executeCommissionRatesCountRequest(string $programId): int
+    {
+//        fixme: what about other pages??
+        return $this->executeCommissionRatesRequest($programId)->count();
+    }
+
+    /**
+     * @inheritDoc
+     * @throws GuzzleException
      */
     public function executeCommissionRatesRequest(
         string $programId,

@@ -186,6 +186,17 @@ class Awin extends AbstractNetwork implements Network
      * @throws GuzzleException
      * @throws Throwable
      */
+    public function executeCommissionRatesCountRequest(string $programId): int
+    {
+//        fixme: what about other pages?
+        return $this->executeCommissionRatesRequest($programId)->count();
+    }
+
+    /**
+     * @inheritDoc
+     * @throws GuzzleException
+     * @throws Throwable
+     */
     public function executeCommissionRatesRequest(
         string $programId,
         int $page = 1,
