@@ -149,11 +149,9 @@ class Awin extends AbstractNetwork implements Network
         ?DateTime $fromDateTime = null,
         ?DateTime $toDateTime = null,
         int $page = 1,
-        int $perPage = 10
+        ?int $perPage = null
     ): Collection
     {
-        // fixme: consider $page & $perPage parameters
-
         $fromDateTime = is_null($fromDateTime) ? Date::now() : $fromDateTime;
         $toDateTime = is_null($toDateTime) ? Date::now() : $toDateTime;
 
@@ -174,11 +172,19 @@ class Awin extends AbstractNetwork implements Network
             throw new RuntimeException("Expected response status code 200. Got $statusCode.");
         }
 
-        $transactions = new Collection();
-        foreach (json_decode($response->getBody(), true) as $transaction) {
-            $transactions->push($this->transactionFromJson($transaction));
+        $transactions = json_decode($response->getBody(), true);
+        if ($perPage){
+            $chunks = array_chunk($transactions, $perPage);
+            $chunk = $chunks[$page - 1] ?? [];
         }
-        return $transactions;
+        else{
+            $chunk = $transactions;
+        }
+
+        return collect($chunk)
+            ->map(function (array $transaction) {
+                return $this->transactionFromJson($transaction);
+            });
     }
 
     /**
@@ -188,7 +194,6 @@ class Awin extends AbstractNetwork implements Network
      */
     public function executeCommissionRatesCountRequest(string $programId): int
     {
-//        fixme: what about other pages?
         return $this->executeCommissionRatesRequest($programId)->count();
     }
 

@@ -164,7 +164,7 @@ class Zanox extends AbstractNetwork implements Network
         ?DateTime $fromDateTime = null,
         ?DateTime $toDateTime = null,
         int $page = 1,
-        int $perPage = 10
+        ?int $perPage = null
     ): Collection
     {
         $leads = $this->executeReportsRequest('lead', $programs, $fromDateTime, $toDateTime, $page, $perPage);
@@ -365,7 +365,7 @@ class Zanox extends AbstractNetwork implements Network
      * @param  DateTime|null  $fromDateTime
      * @param  DateTime|null  $toDateTime
      * @param  int  $page
-     * @param  int  $perPage
+     * @param  int|null  $perPage
      * @return Collection
      * @throws GuzzleException
      * @throws Exception
@@ -378,7 +378,7 @@ class Zanox extends AbstractNetwork implements Network
         ?DateTime $fromDateTime = null,
         ?DateTime $toDateTime = null,
         int $page = 1,
-        int $perPage = 10
+        ?int $perPage = null
     )
     {
         $fromDateTime = (is_null($fromDateTime) ? Date::now() : new Carbon($fromDateTime))->startOfDay();

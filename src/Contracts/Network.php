@@ -86,7 +86,7 @@ interface Network
      * @param  DateTime|null  $fromDateTime
      * @param  DateTime|null  $toDateTime
      * @param  int  $page
-     * @param  int  $perPage
+     * @param  int|null  $perPage
      * @return Collection
      */
     public function executeTransactionsRequest(
@@ -94,7 +94,7 @@ interface Network
         ?DateTime $fromDateTime = null,
         ?DateTime $toDateTime = null,
         int $page = 1,
-        int $perPage = 10
+        ?int $perPage = null
     ): Collection;
 
     /**

@@ -12,7 +12,7 @@ use Maatwebsite\Excel\Row;
 use Matriphe\ISO639\ISO639;
 use SoluzioneSoftware\LaravelAffiliate\Models\Feed;
 
-class FeedsImport implements WithHeadingRow, OnEachRow,  ToCollection
+class FeedsImport implements WithHeadingRow, OnEachRow, ToCollection
 {
     /**
      * @inheritDoc

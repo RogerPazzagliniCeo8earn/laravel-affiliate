@@ -106,7 +106,7 @@ abstract class AbstractNetwork implements Network
         ?DateTime $fromDateTime = null,
         ?DateTime $toDateTime = null,
         int $page = 1,
-        int $perPage = 10
+        ?int $perPage = null
     ): Collection;
 
     /**

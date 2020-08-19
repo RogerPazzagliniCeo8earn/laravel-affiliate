@@ -30,7 +30,7 @@ class Product extends Model
 
     public function getConnectionName()
     {
-        return Config::get('affiliate-networks.db.connection');
+        return Config::get('affiliate.db.connection', parent::getConnectionName());
     }
 
     public function getTable()
