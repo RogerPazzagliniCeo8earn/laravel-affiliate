@@ -2,74 +2,23 @@
 
 namespace Tests\Unit\Networks;
 
-use GuzzleHttp\Client;
-use GuzzleHttp\Exception\GuzzleException;
-use GuzzleHttp\Handler\MockHandler;
-use GuzzleHttp\HandlerStack;
-use GuzzleHttp\Psr7\Response;
+use SoluzioneSoftware\LaravelAffiliate\Contracts\Network;
 use SoluzioneSoftware\LaravelAffiliate\Networks\Awin;
-use Tests\TestCase;
-use Throwable;
 
-class AwinTest extends TestCase
+class AwinTest extends AbstractNetwork
 {
-    /**
-     * @test
-     * @throws GuzzleException
-     * @throws Throwable
-     */
-    public function execute_commission_rates_request()
+    protected function makeNetwork(): Network
     {
-        $advertiserId = 1001;
-
-        $data = [
-            "advertiser" => $advertiserId,
-            "publisher" => 45628,
-            "commissionGroups" => [
-                [
-                    "groupId" => 147,
-                    "groupCode" => "GP1",
-                    "groupName" => "group 1",
-                    "type" => "percentage",
-                    "percentage" => 2
-                ],
-                [
-                    "groupId" => 19474,
-                    "groupCode" => "JS",
-                    "groupName" => "Julius's's",
-                    "type" => "fix",
-                    "amount" => 100,
-                    "currency" => "GBP"
-                ],
-            ],
-        ];
-
-        $mock = new MockHandler([
-            new Response(200, [], json_encode($data)),
-        ]);
-
-        $handlerStack = HandlerStack::create($mock);
-        $this->instance('affiliate.client', new Client(['handler' => $handlerStack]));
-
-        $commissionGroups = (new Awin())->executeCommissionRatesRequest($advertiserId);
-
-        $this->assertCount(count($data['commissionGroups']), $commissionGroups);
+        return new Awin();
     }
 
-    /**
-     * @test
-     * @throws GuzzleException
-     * @throws Throwable
-     */
-    public function execute_transactions_request()
+    protected function getTransactions(): array
     {
-        $advertiserId = 7052;
-
-        $data = [
+        return [
             [
                 "id" => 259630312,
                 "url" => "http://www.publisher.com",
-                "advertiserId" => $advertiserId,
+                "advertiserId" => 7052,
                 "publisherId" => 189069,
                 "commissionSharingPublisherId" => 55555,
                 "commissionSharingSelectedRatePublisherId" => 189069,
@@ -150,16 +99,35 @@ class AwinTest extends TestCase
                 "originalSaleAmount" => null
             ],
         ];
+    }
 
-        $mock = new MockHandler([
-            new Response(200, [], json_encode($data)),
-        ]);
+    protected function getCommissionRates(): array
+    {
+        return [
+            [
+                "groupId" => 147,
+                "groupCode" => "GP1",
+                "groupName" => "group 1",
+                "type" => "percentage",
+                "percentage" => 2
+            ],
+            [
+                "groupId" => 19474,
+                "groupCode" => "JS",
+                "groupName" => "Julius's's",
+                "type" => "fix",
+                "amount" => 100,
+                "currency" => "GBP"
+            ],
+        ];
+    }
 
-        $handlerStack = HandlerStack::create($mock);
-        $this->instance('affiliate.client', new Client(['handler' => $handlerStack]));
-
-        $commissionGroups = (new Awin())->executeTransactionsRequest([$advertiserId]);
-
-        $this->assertCount(count($data), $commissionGroups);
+    protected function getCommissionRatesResponse(): array
+    {
+        return [
+            "advertiser" => 1001,
+            "publisher" => 45628,
+            "commissionGroups" => $this->getCommissionRates(),
+        ];
     }
 }
