@@ -33,6 +33,7 @@ class Feed extends Model
     ];
 
     protected $casts = [
+        'feed_id' => 'integer',
         'joined' => 'boolean',
         'products_count' => 'integer',
     ];
