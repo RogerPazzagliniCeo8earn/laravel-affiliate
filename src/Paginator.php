@@ -29,6 +29,13 @@ class Paginator implements Arrayable, ArrayAccess, Countable, IteratorAggregate,
     protected $currentPage;
 
     /**
+     * The last available page.
+     *
+     * @var int
+     */
+    protected $lastPage;
+
+    /**
      * @var int|null
      */
     protected $perPage = null;
@@ -39,6 +46,7 @@ class Paginator implements Arrayable, ArrayAccess, Countable, IteratorAggregate,
         $this->total = $total;
         $this->currentPage = $currentPage;
         $this->perPage = $perPage;
+        $this->lastPage = max((int) ceil($total / $perPage), 1);
     }
 
     /**
@@ -55,6 +63,26 @@ class Paginator implements Arrayable, ArrayAccess, Countable, IteratorAggregate,
     public function perPage()
     {
         return $this->perPage;
+    }
+
+    /**
+     * Get the last page.
+     *
+     * @return int
+     */
+    public function lastPage()
+    {
+        return $this->lastPage;
+    }
+
+    /**
+     * Determine if there are more items in the data source.
+     *
+     * @return bool
+     */
+    public function hasMorePages()
+    {
+        return $this->currentPage() < $this->lastPage();
     }
 
     /**
