@@ -19,13 +19,7 @@ class FeedsImport implements WithHeadingRow, OnEachRow, ToCollection
      */
     public function onRow(Row $row)
     {
-        $data = $row->toArray();
-
-        $data['joined'] = $data['membership_status'] === 'active';
-        $data['region'] = $data['primary_region'];
-        $data['language'] = (new ISO639)->code1ByLanguage($data['language']);
-        $data['imported_at'] = $data['last_imported']; // fixme: consider timezone
-        $data['products_count'] = $data['no_of_products'];
+        $data = static::map($row->toArray());
 
         Feed::query()->updateOrCreate(Arr::only($data, 'feed_id'), $data);
     }
@@ -46,5 +40,33 @@ class FeedsImport implements WithHeadingRow, OnEachRow, ToCollection
                     $feed->delete();
                 }
             });
+    }
+
+    public static function map(array $row)
+    {
+        return [
+            'advertiser_id' => (string)$row['advertiser_id'],
+            'advertiser_name' => $row['advertiser_name'],
+            'feed_id' => $row['feed_id'],
+            'joined' => $row['membership_status'] === 'active',
+            'products_count' => $row['no_of_products'],
+            'imported_at' => $row['last_imported'], // fixme: consider timezone
+            'region' => $row['primary_region'],
+            'language' => (new ISO639)->code1ByLanguage($row['language']),
+        ];
+    }
+
+    public static function getAttributeNames()
+    {
+        return [
+            'advertiser_id',
+            'advertiser_name',
+            'feed_id',
+            'joined',
+            'products_count',
+            'imported_at',
+            'region',
+            'language',
+        ];
     }
 }

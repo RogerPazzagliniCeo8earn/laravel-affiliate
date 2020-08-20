@@ -2,8 +2,8 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Schema;
+use SoluzioneSoftware\LaravelAffiliate\Models\Feed;
 use SoluzioneSoftware\LaravelAffiliate\Models\Product;
 
 class CreateAffiliateProductsTable extends Migration
@@ -44,7 +44,7 @@ class CreateAffiliateProductsTable extends Migration
             $table
                 ->foreign('feed_id')
                 ->references('id')
-                ->on(Config::get('affiliate.db.tables.feeds'));
+                ->on((new Feed())->getTable());
         });
     }
 

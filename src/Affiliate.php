@@ -76,7 +76,7 @@ class Affiliate
 
     public function updateFeeds()
     {
-        $listPath = $this->path("feeds.csv");
+        $listPath = $this->path() . DIRECTORY_SEPARATOR . 'feeds.csv';
         $this->downloadFeeds($listPath);
         $this->importFeeds($listPath);
     }
@@ -90,7 +90,6 @@ class Affiliate
 
     protected function importFeeds(string $path)
     {
-//        fixme: delete old
         Excel::import(new FeedsImport(), $path);
     }
 
@@ -103,8 +102,14 @@ class Affiliate
     {
         $basePath =
             Config::get('affiliate.product_feeds.directory_path')
-            ?? App::storagePath() . DIRECTORY_SEPARATOR.'affiliate'.DIRECTORY_SEPARATOR.'product_feed';
-        File::isDirectory($basePath) or File::makeDirectory($basePath, 0777, true, true);
-        return $basePath . ($path ? DIRECTORY_SEPARATOR . $path : $path);
+            ?? App::storagePath() . DIRECTORY_SEPARATOR . 'affiliate';
+        $fullPath = $basePath . ($path ? DIRECTORY_SEPARATOR . $path : $path);
+        static::ensureDirectoryExists($fullPath);
+        return $fullPath;
+    }
+
+    protected static function ensureDirectoryExists(string $path)
+    {
+        return File::isDirectory($path) or File::makeDirectory($path, 0777, true, true);
     }
 }

@@ -24,7 +24,7 @@ return [
         /*
          * null|string
          * The path where to store product feed files.
-         * If set to null, storage_path('affiliate/product_feed') will be used.
+         * If set to null, storage_path('affiliate/feed') will be used.
          */
         'directory_path' => null,
 

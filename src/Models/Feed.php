@@ -2,8 +2,8 @@
 
 namespace SoluzioneSoftware\LaravelAffiliate\Models;
 
-use DateTime;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Config;
 
 /**
@@ -14,8 +14,8 @@ use Illuminate\Support\Facades\Config;
  * @property bool joined
  * @property string region
  * @property string language
- * @property DateTime|null products_updated_at
- * @property DateTime|null imported_at
+ * @property Carbon|null products_updated_at
+ * @property Carbon|null imported_at
  * @property int products_count
  */
 class Feed extends Model
@@ -45,7 +45,7 @@ class Feed extends Model
 
     public function getConnectionName()
     {
-        return Config::get('affiliate.db.connection');
+        return Config::get('affiliate.db.connection', parent::getConnectionName());
     }
 
     public function getTable()

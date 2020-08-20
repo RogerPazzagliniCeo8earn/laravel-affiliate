@@ -7,12 +7,13 @@ use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Psr7\Response;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\File;
 use Maatwebsite\Excel\ExcelServiceProvider;
+use Maatwebsite\Excel\Facades\Excel;
 use PHPUnit\Framework\Constraint\FileExists;
 use PHPUnit\Framework\Constraint\LogicalNot;
 use SoluzioneSoftware\LaravelAffiliate\Affiliate;
+use SoluzioneSoftware\LaravelAffiliate\Imports\FeedsImport;
 use SoluzioneSoftware\LaravelAffiliate\Models\Feed;
 use Tests\TestCase;
 
@@ -23,7 +24,7 @@ class AffiliateTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        Config::set('affiliate.db.connection', 'testing');
+
         $this->loadMigrationsFrom(__DIR__ . '/../../database/migrations');
         $this->withFactories(__DIR__ . '/../../database/factories');
     }
@@ -40,7 +41,7 @@ class AffiliateTest extends TestCase
      */
     public function downloads_file_when_updating_feeds()
     {
-        $path = Affiliate::path('feeds.csv');
+        $path = Affiliate::path() . DIRECTORY_SEPARATOR . 'feeds.csv';
 
         File::delete($path);
         $this->assertThat($path, new LogicalNot(new FileExists));
@@ -61,17 +62,31 @@ class AffiliateTest extends TestCase
      */
     public function new_records_are_added_when_updating_feeds()
     {
+        $path = __DIR__ . '/../Fixtures/feeds.csv';
+
         $this->assertTrue(Feed::query()->doesntExist());
 
         $mock = new MockHandler([
-            new Response(200, ['Content-Type' => 'text/csv;charset=UTF-8'], file_get_contents(__DIR__ . '/../Fixtures/feeds.csv'))
+            new Response(200, ['Content-Type' => 'text/csv;charset=UTF-8'], file_get_contents($path))
         ]);
         $handlerStack = HandlerStack::create($mock);
         $this->instance('affiliate.client', new Client(['handler' => $handlerStack]));
 
         (new Affiliate())->updateFeeds();
 
-        $this->assertTrue(Feed::query()->exists());
+        $feeds = Feed::all(FeedsImport::getAttributeNames());
+
+        $this->assertEquals(3, $feeds->count());
+
+        $feedsArray = array_map(function (array $row) {
+            return FeedsImport::map($row);
+        }, Excel::toArray(new FeedsImport(), $path)[0]);
+
+        $diff = array_udiff($feedsArray, $feeds->toArray(), function (array $a, array $b) {
+                return array_diff($a, $b);
+            });
+
+        $this->assertCount(0, $diff);
     }
 
     /**
@@ -79,18 +94,32 @@ class AffiliateTest extends TestCase
      */
     public function old_records_are_removed_when_updating_feeds()
     {
+        $path = __DIR__ . '/../Fixtures/1_feeds.csv';
+
         factory(Feed::class, 10)->create();
 
         $this->assertEquals(10, Feed::query()->count());
 
         $mock = new MockHandler([
-            new Response(200, ['Content-Type' => 'text/csv;charset=UTF-8'], file_get_contents(__DIR__ . '/../Fixtures/1_feeds.csv'))
+            new Response(200, ['Content-Type' => 'text/csv;charset=UTF-8'], file_get_contents($path))
         ]);
         $handlerStack = HandlerStack::create($mock);
         $this->instance('affiliate.client', new Client(['handler' => $handlerStack]));
 
         (new Affiliate())->updateFeeds();
 
+        $feeds = Feed::all(FeedsImport::getAttributeNames());
+
         $this->assertEquals(1, Feed::query()->count());
+
+        $feedsArray = array_map(function (array $row) {
+            return FeedsImport::map($row);
+        }, Excel::toArray(new FeedsImport(), $path)[0]);
+
+        $diff = array_udiff($feedsArray, $feeds->toArray(), function (array $a, array $b) {
+            return array_diff($a, $b);
+        });
+
+        $this->assertCount(0, $diff);
     }
 }
