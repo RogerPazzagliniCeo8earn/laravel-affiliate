@@ -2,14 +2,10 @@
 
 namespace SoluzioneSoftware\LaravelAffiliate\Console;
 
-use Chumper\Zipper\Facades\Zipper;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Config;
-use Illuminate\Support\Facades\Date;
-use Illuminate\Support\Facades\File;
-use Maatwebsite\Excel\Facades\Excel;
-use SoluzioneSoftware\LaravelAffiliate\Imports\ProductsImport;
+use SoluzioneSoftware\LaravelAffiliate\Facades\Affiliate;
 use SoluzioneSoftware\LaravelAffiliate\Models\Feed;
 
 class Products extends Command
@@ -37,31 +33,22 @@ class Products extends Command
 
         $this->info("Found {$feeds->count()} feeds to update.");
 
-        if ($feeds->count() === 0){
-            return;
-        }
+        $progressBar = $this->output->createProgressBar($feeds->count());
+        $progressBar->start();
 
-        $fileName = "products";
-        $this->downloadProducts($feeds, $this->path("$fileName.zip"));
-        $this->extract($this->path("$fileName.zip"), $this->path($fileName));
-        $this->deleteFile($this->path("$fileName.zip"));
-
-        foreach (glob("{$this->path($fileName)}/*.csv") as $file) {
-            $this->importProducts($feeds, $file);
-
-            $feeds->each(function (Feed $feed){
-                $feed->update(['products_updated_at' => Date::now()]);
+        $feeds
+            ->each(function (Feed $feed) use ($progressBar) {
+                Affiliate::updateProducts($feed);
+                $progressBar->advance();
             });
-        }
+
+        $progressBar->finish();
+        $this->info('Done.');
     }
 
-    private function getFeeds()
+    private function getFeeds(): Collection
     {
         $query = Feed::query();
-
-        if (Config::get('affiliate.product_feeds.only_joined')){
-            $query->where('joined', true);
-        }
 
         if (Config::get('affiliate.product_feeds.only_joined')){
             $query->where('joined', true);
@@ -87,49 +74,6 @@ class Products extends Command
         });
 
         return $query->get();
-    }
-
-    private function downloadProducts(Collection $feeds, string $path)
-    {
-        $columns = [
-            'product_name',
-            'description',
-            'aw_product_id',
-            'merchant_image_url',
-            'search_price',
-            'currency',
-            'merchant_deep_link',
-            'data_feed_id',
-            'last_updated',
-        ];
-        $url = "https://productdata.awin.com"
-            . "/datafeed/download"
-            . "/apikey/{$this->apiKey()}"
-            . "/fid/" . implode(',', $feeds->pluck('feed_id')->toArray())
-            . "/format/csv"
-            . "/language/any"
-            . "/delimiter/%2C" // comma
-            . "/compression/zip"
-            . "/columns/" . implode('%2C', $columns);
-
-        $this->client->get($url, ['sink' => $path]);
-    }
-
-    private function importProducts(Collection $feeds, string $path)
-    {
-//        fixme: delete old
-        $dateFilter = Date::now()->subHour(); // see ServiceProvider@console
-        Excel::import(new ProductsImport($feeds, $dateFilter), $path);
-    }
-
-    protected function extract(string $source, string $destination)
-    {
-        Zipper::make($source)->extractTo($destination);
-    }
-
-    protected function deleteFile(string $file)
-    {
-        File::delete($file);
     }
 
 }

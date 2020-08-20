@@ -2,6 +2,7 @@
 
 namespace Tests\Unit;
 
+use Chumper\Zipper\ZipperServiceProvider;
 use GuzzleHttp\Client;
 use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\HandlerStack;
@@ -15,6 +16,7 @@ use PHPUnit\Framework\Constraint\LogicalNot;
 use SoluzioneSoftware\LaravelAffiliate\Affiliate;
 use SoluzioneSoftware\LaravelAffiliate\Imports\FeedsImport;
 use SoluzioneSoftware\LaravelAffiliate\Models\Feed;
+use SoluzioneSoftware\LaravelAffiliate\Models\Product;
 use Tests\TestCase;
 
 class AffiliateTest extends TestCase
@@ -33,6 +35,7 @@ class AffiliateTest extends TestCase
     {
         return [
             ExcelServiceProvider::class,
+            ZipperServiceProvider::class,
         ];
     }
 
@@ -121,5 +124,24 @@ class AffiliateTest extends TestCase
         });
 
         $this->assertCount(0, $diff);
+    }
+
+    /**
+     * @test
+     */
+    public function new_records_are_added_when_updating_feed_products()
+    {
+        /** @var Feed $feed */
+        $feed = factory(Feed::class)->create();
+
+        $mock = new MockHandler([
+            new Response(200, ['Content-Type' => 'application/zip'], file_get_contents(__DIR__ . '/../Fixtures/products.zip'))
+        ]);
+        $handlerStack = HandlerStack::create($mock);
+        $this->instance('affiliate.client', new Client(['handler' => $handlerStack]));
+
+        $this->assertTrue(Product::query()->doesntExist());
+        (new Affiliate())->updateProducts($feed);
+        $this->assertTrue(Product::query()->exists());
     }
 }

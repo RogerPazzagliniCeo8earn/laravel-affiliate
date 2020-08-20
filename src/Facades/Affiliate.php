@@ -4,6 +4,7 @@ namespace SoluzioneSoftware\LaravelAffiliate\Facades;
 
 use Illuminate\Support\Facades\Facade;
 use SoluzioneSoftware\LaravelAffiliate\Contracts\Network;
+use SoluzioneSoftware\LaravelAffiliate\Models\Feed;
 use SoluzioneSoftware\LaravelAffiliate\Requests\CommissionRatesRequestBuilder;
 use SoluzioneSoftware\LaravelAffiliate\Requests\NetworkCommissionRatesRequestBuilder;
 use SoluzioneSoftware\LaravelAffiliate\Requests\NetworkTransactionsRequestBuilder;
@@ -17,6 +18,7 @@ use SoluzioneSoftware\LaravelAffiliate\Requests\TransactionsRequestBuilder;
  * @method static TransactionsRequestBuilder transactions()
  * @method static NetworkTransactionsRequestBuilder networkTransactions(Network $network)
  * @method static void updateFeeds()
+ * @method static void updateProducts(Feed $feed)
  *
  * @see \SoluzioneSoftware\LaravelAffiliate\Affiliate
  */
