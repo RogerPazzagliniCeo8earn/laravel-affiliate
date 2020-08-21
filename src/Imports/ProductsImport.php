@@ -4,22 +4,25 @@ namespace SoluzioneSoftware\LaravelAffiliate\Imports;
 
 use Exception;
 use Illuminate\Support\Arr;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Date;
 use Maatwebsite\Excel\Concerns\OnEachRow;
-use Maatwebsite\Excel\Concerns\ToCollection;
+use Maatwebsite\Excel\Concerns\RegistersEventListeners;
 use Maatwebsite\Excel\Concerns\WithChunkReading;
+use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
+use Maatwebsite\Excel\Events\AfterImport;
 use Maatwebsite\Excel\Row;
 use SoluzioneSoftware\LaravelAffiliate\Models\Feed;
 use SoluzioneSoftware\LaravelAffiliate\Models\Product;
 
-class ProductsImport implements WithHeadingRow, OnEachRow, WithChunkReading, ToCollection
+class ProductsImport implements WithHeadingRow, OnEachRow, WithChunkReading,WithEvents
 {
+    use RegistersEventListeners;
+
     /**
      * @var Feed
      */
-    private $feed;
+    public $feed;
 
     /**
      * @var array
@@ -27,12 +30,35 @@ class ProductsImport implements WithHeadingRow, OnEachRow, WithChunkReading, ToC
     private $products;
 
     /**
+     * @var array
+     */
+    public $processedProductIds = [];
+
+    /**
      * @param  Feed  $feed
      */
     public function __construct(Feed $feed)
     {
         $this->feed = $feed;
-        $this->products = Product::query()->pluck('product_id')->toArray();
+        $this->products = Product::query()->where('feed_id', $feed->id)->pluck('product_id')->toArray();
+    }
+
+    /**
+     * @param  AfterImport  $afterImport
+     * @throws Exception
+     */
+    public static function afterImport(AfterImport $afterImport)
+    {
+        /** @var self $importable */
+        $importable = $afterImport->getConcernable();
+        Product::query()
+            ->whereNotIn('product_id', $importable->processedProductIds)
+            ->get()
+            ->each(function (Product $product) {
+                $product->delete();
+            });
+
+        $importable->feed->update(['products_updated_at' => now()]);
     }
 
     /**
@@ -41,6 +67,8 @@ class ProductsImport implements WithHeadingRow, OnEachRow, WithChunkReading, ToC
     public function onRow(Row $row)
     {
         $data = $row->toArray();
+
+        $this->processedProductIds[] = $data['aw_product_id'];
 
         // skip if not updated and already imported
         if (
@@ -59,20 +87,6 @@ class ProductsImport implements WithHeadingRow, OnEachRow, WithChunkReading, ToC
         $data['details_link'] = $data['merchant_deep_link'];
 
         Product::query()->updateOrCreate(Arr::only($data, ['feed_id', 'product_id']), $data);
-    }
-
-    /**
-     * @inheritDoc
-     * @throws Exception
-     */
-    public function collection(Collection $rows)
-    {
-        $diff = array_diff($this->products, $rows->pluck('aw_product_id')->toArray());
-
-        Product::query()
-            ->where('feed_id', $this->feed->id)
-            ->whereNotIn('product_id', $diff)
-            ->delete();
     }
 
     /**

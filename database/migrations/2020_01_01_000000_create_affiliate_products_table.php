@@ -45,7 +45,9 @@ class CreateAffiliateProductsTable extends Migration
             $table
                 ->foreign('feed_id')
                 ->references('id')
-                ->on((new Feed())->getTable());
+                ->on((new Feed())->getTable())
+                ->onDelete('cascade');
+
         });
     }
 

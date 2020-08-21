@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\App;
 use Illuminate\Support\ServiceProvider as BaseServiceProvider;
 use SoluzioneSoftware\LaravelAffiliate\Console\Feeds;
 use SoluzioneSoftware\LaravelAffiliate\Console\Products;
+use SoluzioneSoftware\LaravelAffiliate\Models\Feed;
+use SoluzioneSoftware\LaravelAffiliate\Observers\FeedObserver;
 
 class ServiceProvider extends BaseServiceProvider
 {
@@ -27,6 +29,8 @@ class ServiceProvider extends BaseServiceProvider
         $this->migrations();
 
         $this->console();
+
+        $this->observers();
     }
 
     private function migrations()
@@ -47,6 +51,11 @@ class ServiceProvider extends BaseServiceProvider
         $schedule
             ->command('affiliate:products')
             ->hourly();
+    }
+
+    private function observers()
+    {
+        Feed::observe(FeedObserver::class);
     }
 
     /**
