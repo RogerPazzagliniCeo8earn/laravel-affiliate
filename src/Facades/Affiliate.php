@@ -2,6 +2,7 @@
 
 namespace SoluzioneSoftware\LaravelAffiliate\Facades;
 
+use Illuminate\Console\OutputStyle;
 use Illuminate\Support\Facades\Facade;
 use SoluzioneSoftware\LaravelAffiliate\Contracts\Network;
 use SoluzioneSoftware\LaravelAffiliate\Models\Feed;
@@ -17,8 +18,8 @@ use SoluzioneSoftware\LaravelAffiliate\Requests\TransactionsRequestBuilder;
  * @method static ProductsRequestBuilder products()
  * @method static TransactionsRequestBuilder transactions()
  * @method static NetworkTransactionsRequestBuilder networkTransactions(Network $network)
- * @method static void updateFeeds()
- * @method static void updateProducts(Feed $feed)
+ * @method static void updateFeeds(?OutputStyle $output = null)
+ * @method static void updateProducts(Feed $feed, ?OutputStyle $output = null)
  *
  * @see \SoluzioneSoftware\LaravelAffiliate\Affiliate
  */

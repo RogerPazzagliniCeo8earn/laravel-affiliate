@@ -25,6 +25,8 @@ class Feeds extends Command
      */
     public function handle()
     {
-        Affiliate::updateFeeds();
+        Affiliate::updateFeeds($this->output);
+
+        $this->info('Done.');
     }
 }

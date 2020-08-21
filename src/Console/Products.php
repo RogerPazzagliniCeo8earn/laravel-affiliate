@@ -33,16 +33,11 @@ class Products extends Command
 
         $this->info("Found {$feeds->count()} feeds to update.");
 
-        $progressBar = $this->output->createProgressBar($feeds->count());
-        $progressBar->start();
-
         $feeds
-            ->each(function (Feed $feed) use ($progressBar) {
-                Affiliate::updateProducts($feed);
-                $progressBar->advance();
+            ->each(function (Feed $feed) {
+                Affiliate::updateProducts($feed, $this->output);
             });
 
-        $progressBar->finish();
         $this->info('Done.');
     }
 

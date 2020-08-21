@@ -4,6 +4,7 @@ namespace SoluzioneSoftware\LaravelAffiliate;
 
 use Chumper\Zipper\Facades\Zipper;
 use GuzzleHttp\ClientInterface;
+use Illuminate\Console\OutputStyle;
 use Illuminate\Container\Container;
 use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Support\Facades\App;
@@ -13,16 +14,21 @@ use Illuminate\Support\Facades\File;
 use Maatwebsite\Excel\Facades\Excel;
 use SoluzioneSoftware\LaravelAffiliate\Contracts\Network;
 use SoluzioneSoftware\LaravelAffiliate\Imports\FeedsImport;
+use SoluzioneSoftware\LaravelAffiliate\Imports\FeedsImportWithProgress;
 use SoluzioneSoftware\LaravelAffiliate\Imports\ProductsImport;
+use SoluzioneSoftware\LaravelAffiliate\Imports\ProductsImportWithProgress;
 use SoluzioneSoftware\LaravelAffiliate\Models\Feed;
 use SoluzioneSoftware\LaravelAffiliate\Requests\CommissionRatesRequestBuilder;
 use SoluzioneSoftware\LaravelAffiliate\Requests\NetworkCommissionRatesRequestBuilder;
 use SoluzioneSoftware\LaravelAffiliate\Requests\NetworkTransactionsRequestBuilder;
 use SoluzioneSoftware\LaravelAffiliate\Requests\ProductsRequestBuilder;
 use SoluzioneSoftware\LaravelAffiliate\Requests\TransactionsRequestBuilder;
+use SoluzioneSoftware\LaravelAffiliate\Traits\InteractsWithConsoleOutput;
 
 class Affiliate
 {
+    use InteractsWithConsoleOutput;
+
     /**
      * @var ClientInterface
      */
@@ -78,17 +84,22 @@ class Affiliate
         return new NetworkTransactionsRequestBuilder($network);
     }
 
-    public function updateFeeds()
+    public function updateFeeds(?OutputStyle $output = null)
     {
+        $this->output = $output;
+
         $listPath = $this->path() . DIRECTORY_SEPARATOR . 'feeds.csv';
         $this->downloadFeeds($listPath);
         $this->importFeeds($listPath);
     }
 
-    public function updateProducts(Feed $feed)
+    public function updateProducts(Feed $feed, ?OutputStyle $output = null)
     {
+        $this->output = $output;
+
         $path = $this->path("products");
         $zipPath = $path . DIRECTORY_SEPARATOR . "{$feed->feed_id}.zip";
+
         $this->downloadProducts($feed, $zipPath);
         $this->extract($zipPath, $path . DIRECTORY_SEPARATOR . $feed->feed_id);
         $this->deleteFile($zipPath);
@@ -104,12 +115,29 @@ class Affiliate
     {
         $url = "https://productdata.awin.com/datafeed/list/apikey/{$this->apiKey()}";
 
-        $this->client->get($url, ['sink' => $path]);
+        $this->writeLine('Downloading...');
+
+        $total = 0;
+        $this->progressStart();
+
+        $this->client->get(
+            $url,
+            [
+                'sink' => $path,
+                'progress' => $this->getDownloadProgressCallable($total),
+            ]);
+
+        $this->progressFinish();
     }
 
     protected function importFeeds(string $path)
     {
-        Excel::import(new FeedsImport(), $path);
+        $import = $this->output
+            ? new FeedsImportWithProgress($this->output)
+            : new FeedsImport();
+
+        $this->writeLine('Importing...');
+        Excel::import($import, $path);
     }
 
     private function downloadProducts(Feed $feed, string $path)
@@ -135,16 +163,35 @@ class Affiliate
             . "/compression/zip"
             . "/columns/" . implode('%2C', $columns);
 
-        $this->client->get($url, ['sink' => $path]);
+        $this->writeLine('Downloading...');
+
+        $total = 0;
+        $this->progressStart();
+
+        $this->client->get(
+            $url,
+            [
+                'sink' => $path,
+                'progress' => $this->getDownloadProgressCallable($total),
+            ]
+        );
+
+        $this->progressFinish();
     }
 
     private function importProducts(Feed $feed, string $path)
     {
-        Excel::import(new ProductsImport($feed), $path);
+        $import = $this->output
+            ? new ProductsImportWithProgress($feed, $this->output)
+            : new ProductsImport($feed);
+
+        $this->writeLine('Importing...');
+        Excel::import($import, $path);
     }
 
     protected function extract(string $source, string $destination)
     {
+        $this->writeLine('Extracting...');
         Zipper::make($source)->extractTo($destination);
     }
 
@@ -171,5 +218,19 @@ class Affiliate
     protected static function ensureDirectoryExists(string $path)
     {
         return File::isDirectory($path) or File::makeDirectory($path, 0777, true, true);
+    }
+
+    protected function getDownloadProgressCallable(int &$total): Callable
+    {
+        return function($downloadTotal, $downloadedBytes) use (&$total) {
+            if ($downloadTotal === 0){
+                return;
+            }
+
+            if ($downloadTotal !== $total) {
+                $this->callMethod('setMaxSteps', $this->progressBar, $total = $downloadTotal);
+            }
+            $this->callMethod('setProgress', $this->progressBar, $downloadedBytes);
+        };
     }
 }
