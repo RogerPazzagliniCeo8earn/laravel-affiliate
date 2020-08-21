@@ -8,6 +8,7 @@ use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Psr7\Response;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\File;
 use Maatwebsite\Excel\ExcelServiceProvider;
 use Maatwebsite\Excel\Facades\Excel;
@@ -86,7 +87,7 @@ class AffiliateTest extends TestCase
         }, Excel::toArray(new FeedsImport(), $path)[0]);
 
         $diff = array_udiff($feedsArray, $feeds->toArray(), function (array $a, array $b) {
-                return array_diff($a, $b);
+                return array_diff(Arr::except($a, 'original_data'), Arr::except($b, 'original_data'));
             });
 
         $this->assertCount(0, $diff);
@@ -120,7 +121,7 @@ class AffiliateTest extends TestCase
         }, Excel::toArray(new FeedsImport(), $path)[0]);
 
         $diff = array_udiff($feedsArray, $feeds->toArray(), function (array $a, array $b) {
-            return array_diff($a, $b);
+            return array_diff(Arr::except($a, 'original_data'), Arr::except($b, 'original_data'));
         });
 
         $this->assertCount(0, $diff);
@@ -140,8 +141,10 @@ class AffiliateTest extends TestCase
         $handlerStack = HandlerStack::create($mock);
         $this->instance('affiliate.client', new Client(['handler' => $handlerStack]));
 
-        $this->assertTrue(Product::query()->doesntExist());
+        $this->assertEquals(0, Product::query()->count());
+
         (new Affiliate())->updateProducts($feed);
-        $this->assertTrue(Product::query()->exists());
+
+        $this->assertEquals(5, Product::query()->count());
     }
 }

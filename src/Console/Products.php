@@ -48,7 +48,7 @@ class Products extends Command
 
     private function getFeeds(): Collection
     {
-        $query = Feed::query();
+        $query = Feed::enabled();
 
         if (Config::get('affiliate.product_feeds.only_joined')){
             $query->where('joined', true);

@@ -2,6 +2,7 @@
 
 namespace SoluzioneSoftware\LaravelAffiliate\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Config;
@@ -12,11 +13,14 @@ use Illuminate\Support\Facades\Config;
  * @property string advertiser_name
  * @property int feed_id
  * @property bool joined
+ * @property bool enabled
  * @property string region
  * @property string language
  * @property Carbon|null products_updated_at
  * @property Carbon|null imported_at
  * @property int products_count
+ * @property array original_data
+ * @method static Builder enabled(bool $enabled = true)
  */
 class Feed extends Model
 {
@@ -25,17 +29,21 @@ class Feed extends Model
         'advertiser_name',
         'feed_id',
         'joined',
+        'enabled',
         'region',
         'language',
         'products_updated_at',
         'imported_at',
         'products_count',
+        'original_data',
     ];
 
     protected $casts = [
         'feed_id' => 'integer',
         'joined' => 'boolean',
+        'enabled' => 'boolean',
         'products_count' => 'integer',
+        'original_data' => 'array',
     ];
 
     protected $dates = [
@@ -56,5 +64,10 @@ class Feed extends Model
     public function products()
     {
         return $this->hasMany(Product::class);
+    }
+
+    public static function scopeEnabled(Builder $query, bool $enabled = true)
+    {
+        return $query->where('enabled', $enabled);
     }
 }

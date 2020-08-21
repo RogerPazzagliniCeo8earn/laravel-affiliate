@@ -35,6 +35,7 @@ class CreateAffiliateProductsTable extends Migration
             $table->text('details_link');
             $table->decimal('price');
             $table->string('currency');
+            $table->dateTime('last_updated_at')->nullable()->comment('provided by affiliate network');
             $table->timestamps();
 
             $table->unique(['feed_id', 'product_id']);

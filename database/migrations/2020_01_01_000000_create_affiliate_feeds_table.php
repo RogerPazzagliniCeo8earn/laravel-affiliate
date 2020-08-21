@@ -30,11 +30,13 @@ class CreateAffiliateFeedsTable extends Migration
                 $table->string('advertiser_name');
                 $table->unsignedInteger('feed_id')->unique(); // note: for now, we are not considering affiliate network
                 $table->boolean('joined');
+                $table->boolean('enabled')->default(false);
                 $table->string('region');
                 $table->char('language', 2);
                 $table->dateTime('imported_at')->nullable();
                 $table->unsignedInteger('products_count');
                 $table->dateTime('products_updated_at')->nullable();
+                $table->json('original_data');
                 $table->timestamps();
             });
     }

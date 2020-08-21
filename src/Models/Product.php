@@ -3,6 +3,7 @@
 namespace SoluzioneSoftware\LaravelAffiliate\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Config;
 
 /**
@@ -14,6 +15,7 @@ use Illuminate\Support\Facades\Config;
  * @property string details_link
  * @property float price
  * @property string currency
+ * @property Carbon|null last_updated_at
  */
 class Product extends Model
 {
@@ -26,6 +28,11 @@ class Product extends Model
         'details_link',
         'price',
         'currency',
+        'last_updated_at',
+    ];
+
+    protected $dates = [
+        'last_updated_at',
     ];
 
     public function getConnectionName()

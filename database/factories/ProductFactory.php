@@ -18,5 +18,6 @@ $factory
             'details_link' => '',
             'price' => $faker->randomFloat(2, .01, 1000),
             'currency' => $faker->countryCode,
+            'last_updated_at' => $faker->optional()->dateTime,
         ];
     });

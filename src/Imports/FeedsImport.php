@@ -53,6 +53,7 @@ class FeedsImport implements WithHeadingRow, OnEachRow, ToCollection
             'imported_at' => $row['last_imported'], // fixme: consider timezone
             'region' => $row['primary_region'],
             'language' => (new ISO639)->code1ByLanguage($row['language']),
+            'original_data' => $row,
         ];
     }
 
@@ -63,6 +64,7 @@ class FeedsImport implements WithHeadingRow, OnEachRow, ToCollection
             'advertiser_name',
             'feed_id',
             'joined',
+            'enabled',
             'products_count',
             'imported_at',
             'region',

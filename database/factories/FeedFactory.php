@@ -13,10 +13,12 @@ $factory
             'advertiser_name' => $faker->company,
             'feed_id' => $faker->unique()->numberBetween(1, 4294967295),
             'joined' => $faker->boolean,
+            'enabled' => $faker->boolean,
             'region' => $faker->countryCode,
             'language' => $faker->languageCode,
             'imported_at' => $faker->optional()->dateTime,
             'products_count' => $faker->unique()->numberBetween(1, 4294967295),
             'products_updated_at' => $faker->optional()->dateTime,
+            'original_data' => [],
         ];
     });
