@@ -97,14 +97,20 @@ class Affiliate
     {
         $this->output = $output;
 
-        $path = $this->path("products");
+        $path = $this->path('products');
+        $feedPath = $this->path('products' . DIRECTORY_SEPARATOR . $feed->feed_id);
         $zipPath = $path . DIRECTORY_SEPARATOR . "{$feed->feed_id}.zip";
 
-        $this->downloadProducts($feed, $zipPath);
-        $this->extract($zipPath, $path . DIRECTORY_SEPARATOR . $feed->feed_id);
-        $this->deleteFile($zipPath);
+        if (!count(glob($feedPath . DIRECTORY_SEPARATOR . '*.csv')) || $feed->needsDownload()){
+            $this->downloadProducts($feed, $zipPath);
+            $this->extract($zipPath, $path . DIRECTORY_SEPARATOR . $feed->feed_id);
+            $this->deleteFile($zipPath);
+        }
+        else{
+            $this->writeLine('Using cached file...');
+        }
 
-        foreach (glob($path . DIRECTORY_SEPARATOR . $feed->feed_id . DIRECTORY_SEPARATOR . '*.csv') as $file) {
+        foreach (glob($feedPath . DIRECTORY_SEPARATOR . '*.csv') as $file) {
             $this->importProducts($feed, $file);
         }
 
@@ -177,6 +183,8 @@ class Affiliate
         );
 
         $this->progressFinish();
+
+        $feed->update(['downloaded_at' => Date::now()]);
     }
 
     private function importProducts(Feed $feed, string $path)

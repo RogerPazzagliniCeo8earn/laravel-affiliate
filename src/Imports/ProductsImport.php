@@ -58,7 +58,7 @@ class ProductsImport implements WithHeadingRow, OnEachRow, WithChunkReading,With
                 $product->delete();
             });
 
-        $importable->feed->update(['products_updated_at' => now()]);
+        $importable->feed->update(['products_updated_at' => Date::now()]);
     }
 
     /**
@@ -73,6 +73,7 @@ class ProductsImport implements WithHeadingRow, OnEachRow, WithChunkReading,With
         // skip if not updated and already imported
         if (
             $this->feed->products_updated_at
+            && $data['last_updated']
             && $this->feed->products_updated_at->greaterThanOrEqualTo(Date::createFromTimestamp($data['last_updated'])) // fixme: consider tz
             && in_array($data['aw_product_id'], $this->products)
         ){

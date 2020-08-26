@@ -19,6 +19,7 @@ use Illuminate\Support\Facades\Config;
  * @property string language
  * @property Carbon|null products_updated_at
  * @property Carbon|null imported_at
+ * @property Carbon|null downloaded_at
  * @property int products_count
  * @property array original_data
  * @method static Builder enabled(bool $enabled = true)
@@ -36,6 +37,7 @@ class Feed extends Model
         'language',
         'products_updated_at',
         'imported_at',
+        'downloaded_at',
         'products_count',
         'original_data',
     ];
@@ -51,6 +53,7 @@ class Feed extends Model
     protected $dates = [
         'products_updated_at',
         'imported_at',
+        'downloaded_at',
     ];
 
     public function getConnectionName()
@@ -69,7 +72,7 @@ class Feed extends Model
     }
 
     /**
-     * @param Builder|QueryBuilder  $query
+     * @param  Builder|QueryBuilder  $query
      * @param  bool  $enabled
      * @return mixed
      */
@@ -79,28 +82,28 @@ class Feed extends Model
     }
 
     /**
-     * @param Builder|QueryBuilder  $query
+     * @param  Builder|QueryBuilder  $query
      * @return mixed
      */
     public static function scopeWhereNeedsUpdate($query)
     {
         $query->where('enabled', true);
 
-        if (Config::get('affiliate.product_feeds.only_joined')){
+        if (Config::get('affiliate.product_feeds.only_joined')) {
             $query->where('joined', true);
         }
 
-        if (!is_null($regions = Config::get('affiliate.product_feeds.regions'))){
+        if (!is_null($regions = Config::get('affiliate.product_feeds.regions'))) {
             $query->whereIn('region', $regions);
         }
 
-        if (!is_null($languages = Config::get('affiliate.product_feeds.languages'))){
+        if (!is_null($languages = Config::get('affiliate.product_feeds.languages'))) {
             $query->whereIn('language', $languages);
         }
 
         // consider updating only new feeds
         $query
-            ->where(function (Builder $query){
+            ->where(function (Builder $query) {
                 $query
                     ->whereNull('products_updated_at')
                     ->orWhereNull('imported_at')
@@ -125,5 +128,13 @@ class Feed extends Model
                 || is_null($this->imported_at)
                 || $this->imported_at->greaterThan($this->products_updated_at)
             );
+    }
+
+    public function needsDownload(): bool
+    {
+        return
+            !$this->downloaded_at
+            || !$this->imported_at
+            || $this->imported_at->greaterThan($this->downloaded_at);
     }
 }
