@@ -17,7 +17,7 @@
         "illuminate/console": "^5.8",
         "illuminate/database": "^5.8",
         "illuminate/support": "^5.8",
-        "konekt/enum": "^3.0",
+        "konekt/enum": "^2.3",
         "maatwebsite/excel": "^3.1",
         "matriphe/iso-639": "^1.2",
         "revolution/laravel-amazon-product-api": "^4.0"

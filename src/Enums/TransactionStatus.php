@@ -15,5 +15,5 @@ class TransactionStatus extends Enum
     const DECLINED = 'declined';
     const PENDING = 'pending';
 
-    public const __DEFAULT = self::PENDING;
+    public const __default = self::PENDING;
 }
