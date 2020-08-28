@@ -3,36 +3,24 @@
 namespace SoluzioneSoftware\LaravelAffiliate\Imports;
 
 use Exception;
-use Illuminate\Support\Arr;
-use Illuminate\Support\Facades\Date;
-use Maatwebsite\Excel\Concerns\OnEachRow;
-use Maatwebsite\Excel\Concerns\RegistersEventListeners;
-use Maatwebsite\Excel\Concerns\WithChunkReading;
-use Maatwebsite\Excel\Concerns\WithEvents;
-use Maatwebsite\Excel\Concerns\WithHeadingRow;
-use Maatwebsite\Excel\Events\AfterImport;
-use Maatwebsite\Excel\Row;
+use Illuminate\Database\Connection;
+use Illuminate\Database\Schema\Builder;
+use Illuminate\Support\Facades\Validator;
+use SoluzioneSoftware\LaravelAffiliate\CsvImporter;
 use SoluzioneSoftware\LaravelAffiliate\Models\Feed;
 use SoluzioneSoftware\LaravelAffiliate\Models\Product;
 
-class ProductsImport implements WithHeadingRow, OnEachRow, WithChunkReading,WithEvents
+class ProductsImport
 {
-    use RegistersEventListeners;
-
     /**
      * @var Feed
      */
-    public $feed;
+    protected $feed;
 
     /**
-     * @var array
+     * @var Connection
      */
-    private $products;
-
-    /**
-     * @var array
-     */
-    public $processedProductIds = [];
+    protected $connection;
 
     /**
      * @param  Feed  $feed
@@ -40,59 +28,102 @@ class ProductsImport implements WithHeadingRow, OnEachRow, WithChunkReading,With
     public function __construct(Feed $feed)
     {
         $this->feed = $feed;
-        $this->products = Product::query()->where('feed_id', $feed->id)->pluck('product_id')->toArray();
+        $this->connection = (new Product())->getConnection();
     }
 
     /**
-     * @param  AfterImport  $afterImport
+     * @param  string  $path
      * @throws Exception
      */
-    public static function afterImport(AfterImport $afterImport)
+    public function import(string $path)
     {
-        /** @var self $importable */
-        $importable = $afterImport->getConcernable();
-        Product::query()
-            ->whereNotIn('product_id', $importable->processedProductIds)
-            ->get()
-            ->each(function (Product $product) {
-                $product->delete();
-            });
+        $importer = new CsvImporter($path);
 
-        $importable->feed->update(['products_updated_at' => Date::now()]);
+        $this->beforeImport();
+
+        while ($data = $importer->get($this->chunkSize())) {
+            $this->onChunkRead($data);
+        }
+
+        $this->afterImport();
+    }
+
+    public function beforeImport()
+    {
+    }
+
+    public function afterImport()
+    {
+    }
+
+    public function mapRow(array $row): ?array
+    {
+        $validator = Validator::make($row, [
+            'product_name' => "nullable|url|max:".Builder::$defaultStringLength,
+            'merchant_image_url' => 'nullable|url',
+        ]);
+
+        if ($validator->fails()) {
+            return null;
+        }
+
+        return [
+            'product_id' => $row['aw_product_id'],
+            'title' => $row['product_name'],
+            'description' => $row['description'],
+            'image_url' => $row['merchant_image_url'],
+            'details_link' => $row['merchant_deep_link'],
+            'price' => $row['search_price'],
+            'currency' => $row['currency'],
+            'last_updated_at' => $row['last_updated'] ?: null,
+        ];
     }
 
     /**
-     * @inheritDoc
+     * @param  array  $rows
+     * @throws Exception
      */
-    public function onRow(Row $row)
+    public function onChunkRead(array $rows)
     {
-        $data = $row->toArray();
+        $mappedRows = [];
 
-        $this->processedProductIds[] = $data['aw_product_id'];
+        foreach ($rows as $row) {
+            $mappedRow = $this->mapRow($row);
+            if ($mappedRow) {
+                $mappedRows[] = array_merge($mappedRow, ['feed_id' => $this->feed->id]);
+            }
+        }
 
-        // skip if not updated and already imported
-        if (
-            $this->feed->products_updated_at
-            && $data['last_updated']
-            && $this->feed->products_updated_at->greaterThanOrEqualTo(Date::createFromTimestamp($data['last_updated'])) // fixme: consider tz
-            && in_array($data['aw_product_id'], $this->products)
-        ){
+        if (!count($mappedRows)) {
             return;
         }
 
-        $data['feed_id'] = $this->feed->id;
-        $data['product_id'] = $data['aw_product_id'];
-        $data['title'] = $data['product_name'];
-        $data['image_url'] = $data['merchant_image_url'];
-        $data['price'] = $data['search_price'];
-        $data['details_link'] = $data['merchant_deep_link'];
+        $columns = array_keys($mappedRows[0]);
+        $columnNames = implode(',', $columns);
 
-        Product::query()->updateOrCreate(Arr::only($data, ['feed_id', 'product_id']), $data);
+        $updateValues = array_map(function (string $column) {
+            return "$column=VALUES($column)";
+        }, $columns);
+        $updateValues = implode(',', $updateValues);
+
+        $bindings = [];
+        $values = array_map(function (array $row) use (&$bindings) {
+            foreach ($row as $value) {
+                $bindings[] = $value;
+            }
+            $values = array_merge(array_fill(0, count($row), '?'), ['NOW()', 'NOW()']);
+            return '('.implode(',', $values).')';
+        }, $mappedRows);
+        $values = implode(',', $values);
+
+        /** @noinspection SqlNoDataSourceInspection */
+        $q = "INSERT INTO affiliate_products ($columnNames,created_at,updated_at) VALUES $values ON DUPLICATE KEY UPDATE $updateValues,updated_at=NOW()";
+
+        if (!$this->connection->insert($q, $bindings)) {
+            throw new Exception('Batch was not inserted');
+        }
     }
 
-    /**
-     * @inheritDoc
-     */
     public function chunkSize(): int
     {
         return 1000;

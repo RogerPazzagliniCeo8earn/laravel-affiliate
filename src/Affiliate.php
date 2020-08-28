@@ -3,6 +3,7 @@
 namespace SoluzioneSoftware\LaravelAffiliate;
 
 use Chumper\Zipper\Facades\Zipper;
+use Exception;
 use GuzzleHttp\ClientInterface;
 use Illuminate\Console\OutputStyle;
 use Illuminate\Container\Container;
@@ -93,6 +94,11 @@ class Affiliate
         $this->importFeeds($listPath);
     }
 
+    /**
+     * @param  Feed  $feed
+     * @param  OutputStyle|null  $output
+     * @throws Exception
+     */
     public function updateProducts(Feed $feed, ?OutputStyle $output = null)
     {
         $this->output = $output;
@@ -100,6 +106,8 @@ class Affiliate
         $path = $this->path('products');
         $feedPath = $this->path('products' . DIRECTORY_SEPARATOR . $feed->feed_id);
         $zipPath = $path . DIRECTORY_SEPARATOR . "{$feed->feed_id}.zip";
+
+        $this->writeLine("Processing feed ID:{$feed->id}...");
 
         if (!count(glob($feedPath . DIRECTORY_SEPARATOR . '*.csv')) || $feed->needsDownload()){
             $this->downloadProducts($feed, $zipPath);
@@ -187,6 +195,11 @@ class Affiliate
         $feed->update(['downloaded_at' => Date::now()]);
     }
 
+    /**
+     * @param  Feed  $feed
+     * @param  string  $path
+     * @throws Exception
+     */
     private function importProducts(Feed $feed, string $path)
     {
         $import = $this->output
@@ -194,12 +207,13 @@ class Affiliate
             : new ProductsImport($feed);
 
         $this->writeLine('Importing...');
-        Excel::import($import, $path);
+        $import->import($path);
     }
 
     protected function extract(string $source, string $destination)
     {
         $this->writeLine('Extracting...');
+        /** @noinspection PhpUndefinedMethodInspection */
         Zipper::make($source)->extractTo($destination);
     }
 

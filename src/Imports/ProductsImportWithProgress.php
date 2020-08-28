@@ -3,18 +3,14 @@
 namespace SoluzioneSoftware\LaravelAffiliate\Imports;
 
 use Illuminate\Console\OutputStyle;
-use Maatwebsite\Excel\Concerns\Importable;
-use Maatwebsite\Excel\Concerns\WithProgressBar;
 use SoluzioneSoftware\LaravelAffiliate\Models\Feed;
 
-class ProductsImportWithProgress extends ProductsImport implements WithProgressBar
+class ProductsImportWithProgress extends ProductsImport
 {
-    use Importable;
-
     /**
-     * @var array
+     * @var OutputStyle
      */
-    private $products;
+    protected $output;
 
     /**
      * @param  Feed  $feed
@@ -23,6 +19,27 @@ class ProductsImportWithProgress extends ProductsImport implements WithProgressB
     public function __construct(Feed $feed, OutputStyle $output)
     {
         parent::__construct($feed);
-        $this->withOutput($output);
+        $this->output = $output;
+    }
+
+    public function onChunkRead(array $rows)
+    {
+        parent::onChunkRead($rows);
+
+        $this->output->progressAdvance(count($rows));
+    }
+
+    public function beforeImport()
+    {
+        parent::beforeImport();
+
+        $this->output->progressStart();
+    }
+
+    public function afterImport()
+    {
+        parent::afterImport();
+
+        $this->output->progressFinish();
     }
 }
