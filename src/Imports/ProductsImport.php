@@ -59,7 +59,7 @@ class ProductsImport
     public function mapRow(array $row): ?array
     {
         $validator = Validator::make($row, [
-            'product_name' => "nullable|url|max:".Builder::$defaultStringLength,
+            'product_name' => "nullable|string|max:".Builder::$defaultStringLength,
             'merchant_image_url' => 'nullable|url',
         ]);
 
