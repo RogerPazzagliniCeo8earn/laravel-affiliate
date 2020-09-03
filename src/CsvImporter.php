@@ -3,6 +3,7 @@
 namespace SoluzioneSoftware\LaravelAffiliate;
 
 use Exception;
+use Illuminate\Support\Facades\Log;
 
 /**
  * taken from https://www.php.net/manual/en/function.fgetcsv.php
@@ -26,7 +27,7 @@ class CsvImporter
      */
     function __construct($fileName, $parseHeader = true, ...$options)
     {
-        if (!$handler = fopen($fileName, "r")){
+        if (!$handler = fopen($fileName, "r")) {
             throw new Exception("Unable to open file: $fileName");
         }
 
@@ -59,6 +60,13 @@ class CsvImporter
 
         while ($line_count < $max_lines && ($row = fgetcsv($this->fp, ...$this->options)) !== false) {
             if ($this->parse_header) {
+                if (count($this->header) > count($row)) {
+                    $headerStr = json_encode($this->header);
+                    $rowStr = json_encode($row);
+                    Log::info("Header is greater than row. $headerStr > $rowStr");
+                    continue;
+                }
+
                 foreach ($this->header as $i => $heading_i) {
                     $row_new[$heading_i] = $row[$i];
                 }
