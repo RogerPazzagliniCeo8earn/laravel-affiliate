@@ -3,8 +3,10 @@
 namespace SoluzioneSoftware\LaravelAffiliate\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Config;
+use Laravel\Scout\Searchable;
 
 /**
  * @property int feed_id
@@ -19,6 +21,8 @@ use Illuminate\Support\Facades\Config;
  */
 class Product extends Model
 {
+    use Searchable;
+
     protected $fillable = [
         'feed_id',
         'product_id',
@@ -48,5 +52,16 @@ class Product extends Model
     public function feed()
     {
         return $this->belongsTo(Feed::class);
+    }
+
+
+    /**
+     * Get the indexable data array for the model.
+     *
+     * @return array
+     */
+    public function toSearchableArray()
+    {
+        return Arr::only($this->toArray(), ['title', 'description']);
     }
 }

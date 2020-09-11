@@ -325,12 +325,7 @@ class Awin extends AbstractNetwork implements Network
         $queryBuilder = Product::query();
 
         if (!is_null($keyword)){
-            $queryBuilder
-                ->where(function (Builder $queryBuilder) use ($keyword) {
-                    $queryBuilder
-                        ->where('title', 'like', "%$keyword%")
-                        ->orWhere('description', 'like', "%$keyword%");
-                });
+            $queryBuilder->whereKey(Product::search($keyword)->keys());
         }
 
         if (!is_null($programs)){
