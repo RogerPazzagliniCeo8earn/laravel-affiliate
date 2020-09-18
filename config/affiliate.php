@@ -53,7 +53,7 @@ return [
             /*
              * see https://wiki.awin.com/index.php/Publisher_Click_Ref
              */
-            'tracking_code_param' => 'pref1',
+            'tracking_code_param' => 'clickRef',
         ],
 
         'zanox' => [

@@ -317,7 +317,7 @@ class Awin extends AbstractNetwork implements Network
             ."?p={$product['product_id']}"
             ."&a={$this->publisherId}"
             ."&m={$product['feed']['advertiser_id']}"
-            .($this->trackingCode ? '&'.$this->trackingCodeParam.'='.$this->trackingCode : '');
+            .($this->trackingCode ? '&'.strtolower($this->trackingCodeParam).'='.$this->trackingCode : '');
     }
 
     /**
