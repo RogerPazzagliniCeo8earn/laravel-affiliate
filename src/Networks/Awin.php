@@ -44,8 +44,9 @@ class Awin extends AbstractNetwork implements Network
     const TRACKING_CODE_PARAM = 'pref1';
 
     const TRANSACTION_STATUS_MAPPING = [
-        'confirmed' => TransactionStatus::CONFIRMED,
+        'approved' => TransactionStatus::CONFIRMED,
         'declined' => TransactionStatus::DECLINED,
+        'deleted' => TransactionStatus::DECLINED,
         'pending' => TransactionStatus::PENDING,
     ];
 
