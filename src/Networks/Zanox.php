@@ -219,6 +219,7 @@ class Zanox extends AbstractNetwork implements Network
             $transaction['program']['@id'],
             $transaction['@id'],
             TransactionStatus::create(static::TRANSACTION_STATUS_MAPPING[$transaction['reviewState']]),
+            null,
             floatval($transaction['commission']),
             $transaction['currency'],
             Carbon::parse($transaction['trackingDate']),

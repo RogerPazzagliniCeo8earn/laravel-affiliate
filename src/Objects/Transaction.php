@@ -24,6 +24,11 @@ class Transaction implements Arrayable
     public $status;
 
     /**
+     * @var bool|null if set, indicates whether the commission for this transaction have been paid to the publisher
+     */
+    public $paid = null;
+
+    /**
      * @var float
      */
     public $amount;
@@ -52,6 +57,7 @@ class Transaction implements Arrayable
         ?string $programId,
         string $id,
         TransactionStatus $status,
+        ?bool $paid,
         float $amount,
         string $currency,
         Carbon $dateTime,
@@ -62,6 +68,7 @@ class Transaction implements Arrayable
         $this->programId = $programId;
         $this->id = $id;
         $this->status = $status;
+        $this->paid = $paid;
         $this->amount = $amount;
         $this->currency = $currency;
         $this->dateTime = $dateTime;
@@ -75,6 +82,7 @@ class Transaction implements Arrayable
             'program_id' => $this->programId,
             'id' => $this->id,
             'status' => $this->status->value(),
+            'paid' => $this->paid,
             'amount' => $this->amount,
             'currency' => $this->currency,
             'date_time' => $this->dateTime,

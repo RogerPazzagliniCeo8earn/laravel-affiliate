@@ -243,6 +243,7 @@ class Awin extends AbstractNetwork implements Network
             $transaction['advertiserId'],
             $transaction['id'],
             TransactionStatus::create(static::TRANSACTION_STATUS_MAPPING[$transaction['commissionStatus']]),
+            $transaction['paidToPublisher'],
             floatval($transaction['commissionAmount']['amount']),
             $transaction['commissionAmount']['currency'],
             Carbon::parse($transaction['transactionDate']),
