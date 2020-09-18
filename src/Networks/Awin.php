@@ -43,6 +43,7 @@ class Awin extends AbstractNetwork implements Network
 
     /**
      * @var string
+     * @link https://wiki.awin.com/index.php/Publisher_Click_Ref
      */
     private $trackingCodeParam;
 
