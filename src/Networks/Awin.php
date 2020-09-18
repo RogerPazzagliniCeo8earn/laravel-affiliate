@@ -41,7 +41,10 @@ class Awin extends AbstractNetwork implements Network
      */
     private $publisherId;
 
-    const TRACKING_CODE_PARAM = 'pref1';
+    /**
+     * @var string
+     */
+    private $trackingCodeParam;
 
     const TRANSACTION_STATUS_MAPPING = [
         'approved' => TransactionStatus::CONFIRMED,
@@ -56,6 +59,7 @@ class Awin extends AbstractNetwork implements Network
 
         $this->apiToken = Config::get('affiliate.credentials.awin.api_token');
         $this->publisherId = Config::get('affiliate.credentials.awin.publisher_id');
+        $this->trackingCodeParam = Config::get('affiliate.networks.awin.tracking_code_param');
     }
 
     protected function getHeaders()
@@ -252,7 +256,7 @@ class Awin extends AbstractNetwork implements Network
      */
     private function getTrackingCodeFromTransaction(array $transaction)
     {
-        return Arr::get($transaction, 'clickRefs.' . static::TRACKING_CODE_PARAM);
+        return Arr::get($transaction, 'clickRefs.'.$this->trackingCodeParam);
     }
 
     public function programFromJson(array $program)
@@ -309,10 +313,10 @@ class Awin extends AbstractNetwork implements Network
     protected function getTrackingLink(array $product)
     {
         return 'https://www.awin1.com/pclick.php'
-            . "?p={$product['product_id']}"
-            . "&a={$this->publisherId}"
-            . "&m={$product['feed']['advertiser_id']}"
-            . ($this->trackingCode ? '&' . static::TRACKING_CODE_PARAM . '=' . $this->trackingCode : '');
+            ."?p={$product['product_id']}"
+            ."&a={$this->publisherId}"
+            ."&m={$product['feed']['advertiser_id']}"
+            .($this->trackingCode ? '&'.$this->trackingCodeParam.'='.$this->trackingCode : '');
     }
 
     /**

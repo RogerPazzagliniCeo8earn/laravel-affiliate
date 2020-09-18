@@ -1,4 +1,5 @@
 <?php
+
 return [
     'credentials' => [
         'awin' => [
@@ -12,6 +13,7 @@ return [
             'ad_space_id' => env('ZANOX_AD_SPACE_ID'),
         ],
     ],
+
     'db' => [
         'connection' => 'mysql',
         'tables' => [
@@ -44,5 +46,15 @@ return [
          * Example: ['en', 'it']
          */
         'languages' => null,
+    ],
+
+    'networks' => [
+        'awin' => [
+            'tracking_code_param' => 'pref1',
+        ],
+
+        'zanox' => [
+            //
+        ],
     ],
 ];
