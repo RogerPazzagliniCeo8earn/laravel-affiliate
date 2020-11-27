@@ -19,11 +19,11 @@ trait InteractsWithConsoleOutput
 
     /**
      * @param  string  $string
-     * @param  string|null  $style options: info, comment, question, error, warning, alert
+     * @param  string|null  $style  options: info, comment, question, error, warning, alert
      */
     protected function writeLine(string $string, ?string $style = null)
     {
-        if ($this->output){
+        if ($this->output) {
             $styled = $style ? "<$style>$string</$style>" : $string;
 
             $this->output->writeln($styled);
@@ -31,7 +31,16 @@ trait InteractsWithConsoleOutput
     }
 
     /**
-     * @param int $max
+     * @param  int  $max
+     */
+    protected function progressStart(int $max = 0)
+    {
+        $this->progressBar = $this->createProgressBar($max);
+        $this->callMethod('start', $this->progressBar);
+    }
+
+    /**
+     * @param  int  $max
      *
      * @return ProgressBar|null
      */
@@ -41,12 +50,14 @@ trait InteractsWithConsoleOutput
     }
 
     /**
-     * @param int $max
+     * @param  string  $method
+     * @param  mixed|null  $object
+     * @param  mixed  ...$params
+     * @return mixed|null
      */
-    protected function progressStart(int $max = 0)
+    protected function callMethod(string $method, $object = null, ...$params)
     {
-        $this->progressBar = $this->createProgressBar($max);
-        $this->callMethod('start', $this->progressBar);
+        return $object ? $object->{$method}(...$params) : null;
     }
 
     protected function progressFinish()
@@ -59,16 +70,5 @@ trait InteractsWithConsoleOutput
     protected function getProgressBar(): ?ProgressBar
     {
         return $this->progressBar ?? $this->createProgressBar();
-    }
-
-    /**
-     * @param  string  $method
-     * @param  mixed|null  $object
-     * @param  mixed  ...$params
-     * @return mixed|null
-     */
-    protected function callMethod(string $method, $object = null, ...$params)
-    {
-        return $object ? $object->{$method}(...$params) : null;
     }
 }

@@ -10,17 +10,6 @@ use Illuminate\Contracts\Debug\ExceptionHandler;
 trait InteractsWithThrowable
 {
     /**
-     * @param  Exception  $e
-     * @throws BindingResolutionException
-     */
-    protected function reportException(Exception $e)
-    {
-        /** @var ExceptionHandler $handler */
-        $handler = Container::getInstance()->make(ExceptionHandler::class);
-        $handler->report($e);
-    }
-
-    /**
      * @param  callable  $callback
      * @param  mixed  $default
      * @param  bool  $report
@@ -38,5 +27,16 @@ trait InteractsWithThrowable
 
             return value($default);
         }
+    }
+
+    /**
+     * @param  Exception  $e
+     * @throws BindingResolutionException
+     */
+    protected function reportException(Exception $e)
+    {
+        /** @var ExceptionHandler $handler */
+        $handler = Container::getInstance()->make(ExceptionHandler::class);
+        $handler->report($e);
     }
 }

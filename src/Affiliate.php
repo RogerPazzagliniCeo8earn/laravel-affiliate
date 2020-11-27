@@ -89,40 +89,24 @@ class Affiliate
     {
         $this->output = $output;
 
-        $listPath = $this->path() . DIRECTORY_SEPARATOR . 'feeds.csv';
+        $listPath = $this->path().DIRECTORY_SEPARATOR.'feeds.csv';
         $this->downloadFeeds($listPath);
         $this->importFeeds($listPath);
     }
 
-    /**
-     * @param  Feed  $feed
-     * @param  OutputStyle|null  $output
-     * @throws Exception
-     */
-    public function updateProducts(Feed $feed, ?OutputStyle $output = null)
+    public static function path(string $path = '')
     {
-        $this->output = $output;
+        $basePath =
+            Config::get('affiliate.product_feeds.directory_path')
+            ?? App::storagePath().DIRECTORY_SEPARATOR.'affiliate';
+        $fullPath = $basePath.($path ? DIRECTORY_SEPARATOR.$path : $path);
+        static::ensureDirectoryExists($fullPath);
+        return $fullPath;
+    }
 
-        $path = $this->path('products');
-        $feedPath = $this->path('products' . DIRECTORY_SEPARATOR . $feed->feed_id);
-        $zipPath = $path . DIRECTORY_SEPARATOR . "{$feed->feed_id}.zip";
-
-        $this->writeLine("Processing feed ID:{$feed->id}...");
-
-        if (!count(glob($feedPath . DIRECTORY_SEPARATOR . '*.csv')) || $feed->needsDownload()){
-            $this->downloadProducts($feed, $zipPath);
-            $this->extract($zipPath, $path . DIRECTORY_SEPARATOR . $feed->feed_id);
-            $this->deleteFile($zipPath);
-        }
-        else{
-            $this->writeLine('Using cached file...');
-        }
-
-        foreach (glob($feedPath . DIRECTORY_SEPARATOR . '*.csv') as $file) {
-            $this->importProducts($feed, $file);
-        }
-
-        $feed->update(['products_updated_at' => Date::now()]);
+    protected static function ensureDirectoryExists(string $path)
+    {
+        return File::isDirectory($path) or File::makeDirectory($path, 0777, true, true);
     }
 
     private function downloadFeeds(string $path)
@@ -144,6 +128,25 @@ class Affiliate
         $this->progressFinish();
     }
 
+    protected function apiKey()
+    {
+        return Config::get('affiliate.credentials.awin.product_feed_api_key');
+    }
+
+    protected function getDownloadProgressCallable(int &$total): callable
+    {
+        return function ($downloadTotal, $downloadedBytes) use (&$total) {
+            if ($downloadTotal === 0) {
+                return;
+            }
+
+            if ($downloadTotal !== $total) {
+                $this->callMethod('setMaxSteps', $this->progressBar, $total = $downloadTotal);
+            }
+            $this->callMethod('setProgress', $this->progressBar, $downloadedBytes);
+        };
+    }
+
     protected function importFeeds(string $path)
     {
         $import = $this->output
@@ -152,6 +155,36 @@ class Affiliate
 
         $this->writeLine('Importing...');
         Excel::import($import, $path);
+    }
+
+    /**
+     * @param  Feed  $feed
+     * @param  OutputStyle|null  $output
+     * @throws Exception
+     */
+    public function updateProducts(Feed $feed, ?OutputStyle $output = null)
+    {
+        $this->output = $output;
+
+        $path = $this->path('products');
+        $feedPath = $this->path('products'.DIRECTORY_SEPARATOR.$feed->feed_id);
+        $zipPath = $path.DIRECTORY_SEPARATOR."{$feed->feed_id}.zip";
+
+        $this->writeLine("Processing feed ID:{$feed->id}...");
+
+        if (!count(glob($feedPath.DIRECTORY_SEPARATOR.'*.csv')) || $feed->needsDownload()) {
+            $this->downloadProducts($feed, $zipPath);
+            $this->extract($zipPath, $path.DIRECTORY_SEPARATOR.$feed->feed_id);
+            $this->deleteFile($zipPath);
+        } else {
+            $this->writeLine('Using cached file...');
+        }
+
+        foreach (glob($feedPath.DIRECTORY_SEPARATOR.'*.csv') as $file) {
+            $this->importProducts($feed, $file);
+        }
+
+        $feed->update(['products_updated_at' => Date::now()]);
     }
 
     private function downloadProducts(Feed $feed, string $path)
@@ -168,14 +201,14 @@ class Affiliate
             'last_updated',
         ];
         $url = "https://productdata.awin.com"
-            . "/datafeed/download"
-            . "/apikey/{$this->apiKey()}"
-            . "/fid/{$feed->feed_id}"
-            . "/format/csv"
-            . "/language/any"
-            . "/delimiter/%2C" // comma
-            . "/compression/zip"
-            . "/columns/" . implode('%2C', $columns);
+            ."/datafeed/download"
+            ."/apikey/{$this->apiKey()}"
+            ."/fid/{$feed->feed_id}"
+            ."/format/csv"
+            ."/language/any"
+            ."/delimiter/%2C" // comma
+            ."/compression/zip"
+            ."/columns/".implode('%2C', $columns);
 
         $this->writeLine('Downloading...');
 
@@ -195,6 +228,18 @@ class Affiliate
         $feed->update(['downloaded_at' => Date::now()]);
     }
 
+    protected function extract(string $source, string $destination)
+    {
+        $this->writeLine('Extracting...');
+        /** @noinspection PhpUndefinedMethodInspection */
+        Zipper::make($source)->extractTo($destination);
+    }
+
+    protected function deleteFile(string $file)
+    {
+        File::delete($file);
+    }
+
     /**
      * @param  Feed  $feed
      * @param  string  $path
@@ -208,51 +253,5 @@ class Affiliate
 
         $this->writeLine('Importing...');
         $import->import($path);
-    }
-
-    protected function extract(string $source, string $destination)
-    {
-        $this->writeLine('Extracting...');
-        /** @noinspection PhpUndefinedMethodInspection */
-        Zipper::make($source)->extractTo($destination);
-    }
-
-    protected function deleteFile(string $file)
-    {
-        File::delete($file);
-    }
-
-    protected function apiKey()
-    {
-        return Config::get('affiliate.credentials.awin.product_feed_api_key');
-    }
-
-    public static function path(string $path = '')
-    {
-        $basePath =
-            Config::get('affiliate.product_feeds.directory_path')
-            ?? App::storagePath() . DIRECTORY_SEPARATOR . 'affiliate';
-        $fullPath = $basePath . ($path ? DIRECTORY_SEPARATOR . $path : $path);
-        static::ensureDirectoryExists($fullPath);
-        return $fullPath;
-    }
-
-    protected static function ensureDirectoryExists(string $path)
-    {
-        return File::isDirectory($path) or File::makeDirectory($path, 0777, true, true);
-    }
-
-    protected function getDownloadProgressCallable(int &$total): Callable
-    {
-        return function($downloadTotal, $downloadedBytes) use (&$total) {
-            if ($downloadTotal === 0){
-                return;
-            }
-
-            if ($downloadTotal !== $total) {
-                $this->callMethod('setMaxSteps', $this->progressBar, $total = $downloadTotal);
-            }
-            $this->callMethod('setProgress', $this->progressBar, $downloadedBytes);
-        };
     }
 }

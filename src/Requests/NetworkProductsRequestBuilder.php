@@ -13,7 +13,7 @@ class NetworkProductsRequestBuilder extends ProductsRequestBuilder
     private $network;
 
     /**
-     * @param Network $network
+     * @param  Network  $network
      */
     public function __construct(Network $network)
     {
@@ -32,13 +32,6 @@ class NetworkProductsRequestBuilder extends ProductsRequestBuilder
         );
     }
 
-    protected function executeCount(): int
-    {
-        return $this->network->executeProductsCountRequest(
-            $this->getPrograms($this->network), $this->keyword, $this->languages
-        );
-    }
-
     /**
      * @param  Network  $network
      * @return array|null
@@ -46,6 +39,13 @@ class NetworkProductsRequestBuilder extends ProductsRequestBuilder
     protected function getPrograms(Network $network): ?array
     {
         return count($this->programs) ? $this->programs : null;
+    }
+
+    protected function executeCount(): int
+    {
+        return $this->network->executeProductsCountRequest(
+            $this->getPrograms($this->network), $this->keyword, $this->languages
+        );
     }
 
     /**

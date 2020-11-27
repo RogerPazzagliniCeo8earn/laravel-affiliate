@@ -19,11 +19,11 @@ class ServiceProvider extends BaseServiceProvider
     public function boot()
     {
         $this->publishes([
-            __DIR__ . '/../config/affiliate.php' => App::configPath('affiliate.php'),
+            __DIR__.'/../config/affiliate.php' => App::configPath('affiliate.php'),
         ]);
 
         $this->mergeConfigFrom(
-            __DIR__ . '/../config/affiliate.php', 'affiliate'
+            __DIR__.'/../config/affiliate.php', 'affiliate'
         );
 
         $this->migrations();
@@ -35,8 +35,8 @@ class ServiceProvider extends BaseServiceProvider
 
     private function migrations()
     {
-        $this->loadMigrationsFrom(__DIR__ . '/../database/migrations/2020_01_01_000000_create_affiliate_feeds_table.php');
-        $this->loadMigrationsFrom(__DIR__ . '/../database/migrations/2020_01_01_000000_create_affiliate_products_table.php');
+        $this->loadMigrationsFrom(__DIR__.'/../database/migrations/2020_01_01_000000_create_affiliate_feeds_table.php');
+        $this->loadMigrationsFrom(__DIR__.'/../database/migrations/2020_01_01_000000_create_affiliate_products_table.php');
     }
 
     private function console()

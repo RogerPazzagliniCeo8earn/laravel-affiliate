@@ -13,7 +13,7 @@ class NetworkTransactionsRequestBuilder extends TransactionsRequestBuilder
     private $network;
 
     /**
-     * @param Network $network
+     * @param  Network  $network
      */
     public function __construct(Network $network)
     {

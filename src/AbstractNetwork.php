@@ -68,22 +68,15 @@ abstract class AbstractNetwork implements Network
     /**
      * @inheritDoc
      */
-    abstract public function executeProductsRequest(
-        ?array $programs = null,
-        ?string $keyword = null,
-        ?array $languages = null,
-        ?string $trackingCode = null,
-        int $page = 1,
-        int $perPage = 10
-    ): Collection;
-
-    /**
-     * @inheritDoc
-     */
     public static function getProduct(string $id, ?string $trackingCode = null): ?Product
     {
         return (new static())->executeGetProduct($id, $trackingCode);
     }
+
+    /**
+     * @inheritDoc
+     */
+    abstract public function executeGetProduct(string $id, ?string $trackingCode = null): ?Product;
 
     /**
      * @inheritDoc
@@ -96,7 +89,14 @@ abstract class AbstractNetwork implements Network
     /**
      * @inheritDoc
      */
-    abstract public function executeGetProduct(string $id, ?string $trackingCode = null): ?Product;
+    abstract public function executeProductsRequest(
+        ?array $programs = null,
+        ?string $keyword = null,
+        ?array $languages = null,
+        ?string $trackingCode = null,
+        int $page = 1,
+        int $perPage = 10
+    ): Collection;
 
     /**
      * @inheritDoc
@@ -133,12 +133,32 @@ abstract class AbstractNetwork implements Network
     ): Collection;
 
     /**
+     * @param  array  $transaction
+     * @return Transaction
+     */
+    abstract public function transactionFromJson(array $transaction);
+
+    /**
+     * @param  array  $program
+     * @return Program|null
+     */
+    abstract public function programFromJson(array $program);
+
+    /**
+     * @param  array  $product
+     * @return Product
+     */
+    abstract public function productFromJson(array $product);
+
+    abstract public function commissionRateFromJson(string $programId, array $commissionRate): CommissionRate;
+
+    /**
      * @return ResponseInterface
      * @throws GuzzleException
      */
     protected function callApi()
     {
-        $uri = $this->baseUrl . $this->getEndPoint();
+        $uri = $this->baseUrl.$this->getEndPoint();
 
         $options = [
             'query' => $this->getQueryParams(),
@@ -148,9 +168,9 @@ abstract class AbstractNetwork implements Network
         return $this->client->request('GET', $uri, $options);
     }
 
-    protected function getHeaders()
+    protected function getEndPoint()
     {
-        return ['Accept' => 'application/json'];
+        return $this->requestEndPoint;
     }
 
     protected function getQueryParams()
@@ -158,39 +178,19 @@ abstract class AbstractNetwork implements Network
         return $this->queryParams;
     }
 
-    protected function getEndPoint()
+    protected function getHeaders()
     {
-        return $this->requestEndPoint;
+        return ['Accept' => 'application/json'];
     }
 
     /**
-     * @param array $transaction
-     * @return Transaction
-     */
-    abstract public function transactionFromJson(array $transaction);
-
-    /**
-     * @param array $program
-     * @return Program|null
-     */
-    abstract public function programFromJson(array $program);
-
-    /**
-     * @param array $product
-     * @return Product
-     */
-    abstract public function productFromJson(array $product);
-
-    abstract public function commissionRateFromJson(string $programId, array $commissionRate): CommissionRate;
-
-    /**
-     * @param array $product
+     * @param  array  $product
      * @return string|null
      */
     abstract protected function getDetailsLink(array $product);
 
     /**
-     * @param array $product
+     * @param  array  $product
      * @return string|null
      */
     abstract protected function getTrackingLink(array $product);

@@ -22,17 +22,17 @@ class ProductsRequestBuilder extends AbstractRequestBuilder
     protected $trackingCode = null;
 
     /**
-     * @param string $keyword
+     * @param  string|null  $keyword
      * @return $this
      */
-    public function keyword(string $keyword)
+    public function keyword(?string $keyword)
     {
         $this->keyword = $keyword;
         return $this;
     }
 
     /**
-     * @param string[] $languages
+     * @param  string[]  $languages
      * @return $this
      */
     public function languages(array $languages)
@@ -42,7 +42,7 @@ class ProductsRequestBuilder extends AbstractRequestBuilder
     }
 
     /**
-     * @param string $trackingCode
+     * @param  string  $trackingCode
      * @return $this
      */
     public function withTrackingCode(string $trackingCode)
@@ -64,6 +64,7 @@ class ProductsRequestBuilder extends AbstractRequestBuilder
     protected function executeCountForNetwork(Network $network): int
     {
 //        fixme: use lazy load and remove limit for 100 items
-        return min($network->executeProductsCountRequest($this->getPrograms($network), $this->keyword, $this->languages), 100);
+        return min($network->executeProductsCountRequest($this->getPrograms($network), $this->keyword,
+            $this->languages), 100);
     }
 }

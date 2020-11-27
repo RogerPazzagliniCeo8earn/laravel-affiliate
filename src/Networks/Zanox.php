@@ -22,34 +22,29 @@ use SoluzioneSoftware\LaravelAffiliate\Objects\Transaction;
 
 class Zanox extends AbstractNetwork implements Network
 {
-    /**
-     * @var string
-     */
-    protected $baseUrl = 'https://api.zanox.com/json/2011-03-01';
-
-    /**
-     * @var string
-     */
-    private $connectId;
-
-    /**
-     * @var string
-     */
-    private $secretKey;
-
-    /**
-     * @var string
-     */
-    private $adSpaceId;
-
     const TRACKING_CODE_PARAM = 'zpar0';
-
     const TRANSACTION_STATUS_MAPPING = [
         'approved' => TransactionStatus::CONFIRMED,
         'confirmed' => TransactionStatus::CONFIRMED,
         'open' => TransactionStatus::PENDING,
         'rejected' => TransactionStatus::DECLINED,
     ];
+    /**
+     * @var string
+     */
+    protected $baseUrl = 'https://api.zanox.com/json/2011-03-01';
+    /**
+     * @var string
+     */
+    private $connectId;
+    /**
+     * @var string
+     */
+    private $secretKey;
+    /**
+     * @var string
+     */
+    private $adSpaceId;
 
     public function __construct()
     {
@@ -76,11 +71,56 @@ class Zanox extends AbstractNetwork implements Network
         ?array $programs = null,
         ?string $keyword = null,
         ?array $languages = null
-    ): int
-    {
+    ): int {
         $result = $this->searchProducts($keyword, $programs, $languages, 1, 1);
 
-        return (int)Arr::get($result, 'total');
+        return (int) Arr::get($result, 'total');
+    }
+
+    /**
+     * @param  string|null  $keyword
+     * @param  array|null  $programs
+     * @param  array|null  $languages
+     * @param  int  $page
+     * @param  int  $perPage
+     * @return array
+     * @throws GuzzleException
+     */
+    private function searchProducts(
+        ?string $keyword = null,
+        ?array $programs = null,
+        ?array $languages = null,
+        int $page = 1,
+        int $perPage = 10
+    ) {
+        // fixme: consider $languages(region for zanox??) param
+        // todo: cache results
+
+        $this->requestEndPoint = '/products';
+
+        if (!is_null($keyword)) {
+            $this->queryParams['q'] = $keyword;
+        }
+
+        if (!is_null($programs)) {
+            $this->queryParams['programs'] = implode(',', $programs);
+        }
+
+        // fixme: $page should start from 0?
+        $this->queryParams['page'] = $page;
+
+        if (!is_null($perPage)) {
+            $this->queryParams['items'] = $perPage;
+        }
+
+        $response = $this->callApi();
+
+        $statusCode = $response->getStatusCode();
+        if ($statusCode !== 200) {
+            throw new RuntimeException("Expected response status code 200. Got $statusCode.");
+        }
+
+        return json_decode($response->getBody(), true);
     }
 
     /**
@@ -96,17 +136,61 @@ class Zanox extends AbstractNetwork implements Network
         ?string $trackingCode = null,
         int $page = 1,
         int $perPage = 10
-    ): Collection
-    {
+    ): Collection {
         $this->trackingCode = $trackingCode;
+        $products = collect();
+        $count = $products->count();
+        while ($count < $perPage) {
+            $result = Arr::get(
+                $this->searchProducts($keyword, $programs, $languages, $page, min($perPage, $perPage - $count)),
+                'productItems.productItem',
+                []
+            );
 
-        $result = $this->searchProducts($keyword, $programs, $languages, $page, $perPage);
+            $products = $products->merge($result);
 
-        $products = new Collection(Arr::get($result, 'productItems.productItem', []));
+            if (!count($result)) {
+                break;
+            }
 
-        return $products->map(function (array $productItem){
+            $count = $products->count();
+        }
+
+        return $products->map(function (array $productItem) {
             return $this->productFromJson($productItem);
         });
+    }
+
+    public function productFromJson(array $product)
+    {
+        return new Product(
+            $this->programFromJson($product['program']),
+            $product['@id'],
+            $product['name'],
+            $product['description'],
+            Arr::get($product, 'image.large'),
+            floatval($product['price']),
+            $product['currency'],
+            $this->getDetailsLink($product),
+            $this->getTrackingLink($product),
+            $product
+        );
+    }
+
+    public function programFromJson(array $program)
+    {
+        return new Program($this, $program['@id'], $program['$']);
+    }
+
+    protected function getDetailsLink(array $product)
+    {
+        return Arr::get($product, 'trackingLinks.trackingLink.0.ppc');
+    }
+
+    protected function getTrackingLink(array $product)
+    {
+        $link = $this->getDetailsLink($product);
+        return $link ? $link.($this->trackingCode ? '&'.static::TRACKING_CODE_PARAM.'='.$this->trackingCode : '') : null;
     }
 
     /**
@@ -124,18 +208,17 @@ class Zanox extends AbstractNetwork implements Network
         $response = $this->callApi();
 
         $statusCode = $response->getStatusCode();
-        if ($statusCode !== 200){
+        if ($statusCode !== 200) {
             throw new RuntimeException("Expected response status code 200. Got $statusCode.");
         }
 
         $responseBody = $response->getBody();
         $product = Arr::get(json_decode($responseBody, true), 'productItem.0');
-        if (is_null($product)){
+        if (is_null($product)) {
             throw new RuntimeException("Got null product. Response body: $responseBody");
         }
         return $this->productFromJson($product);
     }
-
 
     /**
      * @inheritDoc
@@ -145,12 +228,107 @@ class Zanox extends AbstractNetwork implements Network
         ?array $programs = null,
         ?DateTime $fromDateTime = null,
         ?DateTime $toDateTime = null
-    ): int
-    {
+    ): int {
         $leads = $this->executeReportsRequest('lead', $programs, $fromDateTime, $toDateTime, 1, 1);
         $sales = $this->executeReportsRequest('sale', $programs, $fromDateTime, $toDateTime, 1, 1);
 
         return $leads->count() + $sales->count();
+    }
+
+    /**
+     * @param  string  $type  possible values: leads, sales
+     * @param  array|null  $programs
+     * @param  DateTime|null  $fromDateTime
+     * @param  DateTime|null  $toDateTime
+     * @param  int  $page
+     * @param  int|null  $perPage
+     * @return Collection
+     * @throws GuzzleException
+     * @throws Exception
+     * @see https://developer.zanox.com/web/guest/publisher-api-2011/get-leads-date
+     * @see https://developer.zanox.com/web/guest/publisher-api-2011/get-sales-date
+     */
+    private function executeReportsRequest(
+        string $type,
+        ?array $programs = null,
+        ?DateTime $fromDateTime = null,
+        ?DateTime $toDateTime = null,
+        int $page = 1,
+        ?int $perPage = null
+    ) {
+        $fromDateTime = (is_null($fromDateTime) ? Date::now() : new Carbon($fromDateTime))->startOfDay();
+        $toDateTime = (is_null($toDateTime) ? Date::now() : new Carbon($toDateTime))->startOfDay();
+
+        $this->queryParams = [];
+        if (!is_null($programs)) {
+            $this->queryParams['programs'] = implode(',', $programs);
+        }
+
+        // fixme: $page should start from 0?
+        $this->queryParams['page'] = $page;
+
+        if (!is_null($perPage)) {
+            $this->queryParams['items'] = $perPage;
+        }
+
+        $transactions = new Collection();
+        while ($fromDateTime->lessThanOrEqualTo($toDateTime)) {
+            $this->requestEndPoint = "/reports/{$type}s/date/{$fromDateTime->format('Y-m-d')}";
+            $response = $this->callApi();
+            $statusCode = $response->getStatusCode();
+            if ($statusCode !== 200) {
+                throw new RuntimeException("Expected response status code 200. Got $statusCode.");
+            }
+
+            $json = json_decode($response->getBody(), true);
+            if ((int) Arr::get($json, 'items', 0) === 0) {
+                return $transactions;
+            }
+
+            foreach ($json["{$type}Items"] as $item) {
+                $transactions->push($this->transactionFromJson($item));
+            }
+
+            $fromDateTime->addDay();
+        }
+        return $transactions;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function transactionFromJson(array $transaction)
+    {
+        return new Transaction(
+            $transaction['program']['@id'],
+            $transaction['@id'],
+            TransactionStatus::create(static::TRANSACTION_STATUS_MAPPING[$transaction['reviewState']]),
+            null,
+            floatval($transaction['commission']),
+            $transaction['currency'],
+            Carbon::parse($transaction['trackingDate']),
+            $this->getTrackingCodeFromTransaction($transaction),
+            $transaction
+        );
+    }
+
+    /**
+     * @param  array  $transaction
+     * @return string|null
+     */
+    private function getTrackingCodeFromTransaction(array $transaction)
+    {
+        $trackingCode = null;
+        array_map(
+            function ($value) use (&$trackingCode) {
+                if ($value['@id'] === static::TRACKING_CODE_PARAM) {
+                    $trackingCode = $value['$'];
+                }
+            },
+            (array) Arr::get($transaction, 'gpps', [])
+        );
+
+        return $trackingCode;
     }
 
     /**
@@ -165,8 +343,7 @@ class Zanox extends AbstractNetwork implements Network
         ?DateTime $toDateTime = null,
         int $page = 1,
         ?int $perPage = null
-    ): Collection
-    {
+    ): Collection {
         $leads = $this->executeReportsRequest('lead', $programs, $fromDateTime, $toDateTime, $page, $perPage);
         $sales = $this->executeReportsRequest('sale', $programs, $fromDateTime, $toDateTime, $page, $perPage);
         return $leads->merge($sales);
@@ -191,90 +368,31 @@ class Zanox extends AbstractNetwork implements Network
         string $programId,
         int $page = 1,
         int $perPage = 100
-    ): Collection
-    {
+    ): Collection {
         $this->requestEndPoint = "/programapplications/program/$programId/adspace/{$this->adSpaceId}/trackingcategories";
 
         $response = $this->callApi();
 
         $statusCode = $response->getStatusCode();
-        if ($statusCode !== 200){
+        if ($statusCode !== 200) {
             throw new RuntimeException("Expected response status code 200. Got $statusCode.");
         }
 
         $responseBody = $response->getBody();
-        $items = new Collection(Arr::get(json_decode($responseBody, true), 'trackingCategoryItem.trackingCategoryItem', []));
+        $items = new Collection(Arr::get(json_decode($responseBody, true), 'trackingCategoryItem.trackingCategoryItem',
+            []));
 
         return $items->map(function (array $trackingCategoryItem) use ($programId) {
             return $this->commissionRateFromJson($programId, $trackingCategoryItem);
         });
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function transactionFromJson(array $transaction)
-    {
-        return new Transaction(
-            $transaction['program']['@id'],
-            $transaction['@id'],
-            TransactionStatus::create(static::TRANSACTION_STATUS_MAPPING[$transaction['reviewState']]),
-            null,
-            floatval($transaction['commission']),
-            $transaction['currency'],
-            Carbon::parse($transaction['trackingDate']),
-            $this->getTrackingCodeFromTransaction($transaction),
-            $transaction
-        );
-    }
-
-    /**
-     * @param array $transaction
-     * @return string|null
-     */
-    private function getTrackingCodeFromTransaction(array $transaction)
-    {
-        $trackingCode = null;
-        array_map(
-            function($value) use (&$trackingCode) {
-                if ($value['@id'] === static::TRACKING_CODE_PARAM){
-                    $trackingCode = $value['$'];
-                }
-            },
-            (array)Arr::get($transaction, 'gpps', [])
-        );
-
-       return $trackingCode;
-    }
-
-    public function programFromJson(array $program)
-    {
-        return new Program($this, $program['@id'], $program['$']);
-    }
-
-    public function productFromJson(array $product)
-    {
-        return new Product(
-            $this->programFromJson($product['program']),
-            $product['@id'],
-            $product['name'],
-            $product['description'],
-            Arr::get($product, 'image.large'),
-            floatval($product['price']),
-            $product['currency'],
-            $this->getDetailsLink($product),
-            $this->getTrackingLink($product),
-            $product
-        );
-    }
-
     public function commissionRateFromJson(string $programId, array $commissionRate): CommissionRate
     {
-        if ($commissionRate['saleFixed'] > 0){
+        if ($commissionRate['saleFixed'] > 0) {
             $type = 'fixed';
             $value = $commissionRate['saleFixed'];
-        }
-        else{
+        } else {
             $type = 'percentage';
             $value = $commissionRate['salePercent'];
         }
@@ -284,26 +402,15 @@ class Zanox extends AbstractNetwork implements Network
             $commissionRate['@id'],
             $commissionRate['name'],
             new ValueType($type),
-            (float)$value,
+            (float) $value,
             $commissionRate
         );
     }
 
-    protected function getDetailsLink(array $product)
-    {
-        return Arr::get($product, 'trackingLinks.trackingLink.0.ppc');
-    }
-
-    protected function getTrackingLink(array $product)
-    {
-        $link = $this->getDetailsLink($product);
-        return $link ? $link . ($this->trackingCode ? '&' . static::TRACKING_CODE_PARAM . '=' . $this->trackingCode : '') : null;
-    }
-
     protected function getHeaders()
     {
-        $time      = $this->assignTimestamp();
-        $nonce     = $this->assignNonce();
+        $time = $this->assignTimestamp();
+        $nonce = $this->assignNonce();
         $signature = $this->getSignature($time, $nonce);
 
         return array_merge(parent::getHeaders(), [
@@ -313,123 +420,26 @@ class Zanox extends AbstractNetwork implements Network
         ]);
     }
 
-    /**
-     * @param  string|null  $keyword
-     * @param  array|null  $programs
-     * @param  array|null  $languages
-     * @param  int  $page
-     * @param  int  $perPage
-     * @return array
-     * @throws GuzzleException
-     */
-    private function searchProducts(
-        ?string $keyword = null,
-        ?array $programs = null,
-        ?array $languages = null,
-        int $page = 1,
-        int $perPage = 10
-    )
+    private function assignTimestamp()
     {
-        // fixme: consider $languages(region for zanox??) param
-        // todo: cache results
-
-        $this->requestEndPoint = '/products';
-
-        if (!is_null($keyword)){
-            $this->queryParams['q'] = $keyword;
-        }
-
-        if (!is_null($programs)){
-            $this->queryParams['programs'] = implode(',', $programs);
-        }
-
-        // fixme: $page should start from 0?
-        $this->queryParams['page'] = $page;
-
-        if (!is_null($perPage)){
-            $this->queryParams['items'] = $perPage;
-        }
-
-        $response = $this->callApi();
-
-        $statusCode = $response->getStatusCode();
-        if ($statusCode !== 200){
-            throw new RuntimeException("Expected response status code 200. Got $statusCode.");
-        }
-
-        return json_decode($response->getBody(), true);
+        return gmdate('D, d M Y H:i:s T');
     }
 
-    /**
-     * @param  string  $type  possible values: leads, sales
-     * @param  array|null  $programs
-     * @param  DateTime|null  $fromDateTime
-     * @param  DateTime|null  $toDateTime
-     * @param  int  $page
-     * @param  int|null  $perPage
-     * @return Collection
-     * @throws GuzzleException
-     * @throws Exception
-     * @see https://developer.zanox.com/web/guest/publisher-api-2011/get-leads-date
-     * @see https://developer.zanox.com/web/guest/publisher-api-2011/get-sales-date
-     */
-    private function executeReportsRequest(
-        string $type,
-        ?array $programs = null,
-        ?DateTime $fromDateTime = null,
-        ?DateTime $toDateTime = null,
-        int $page = 1,
-        ?int $perPage = null
-    )
+    private function assignNonce()
     {
-        $fromDateTime = (is_null($fromDateTime) ? Date::now() : new Carbon($fromDateTime))->startOfDay();
-        $toDateTime = (is_null($toDateTime) ? Date::now() : new Carbon($toDateTime))->startOfDay();
-
-        $this->queryParams = [];
-        if (!is_null($programs)){
-            $this->queryParams['programs'] = implode(',', $programs);
-        }
-
-        // fixme: $page should start from 0?
-        $this->queryParams['page'] = $page;
-
-        if (!is_null($perPage)){
-            $this->queryParams['items'] = $perPage;
-        }
-
-        $transactions = new Collection();
-        while ($fromDateTime->lessThanOrEqualTo($toDateTime)){
-            $this->requestEndPoint = "/reports/{$type}s/date/{$fromDateTime->format('Y-m-d')}";
-            $response = $this->callApi();
-            $statusCode = $response->getStatusCode();
-            if ($statusCode !== 200){
-                throw new RuntimeException("Expected response status code 200. Got $statusCode.");
-            }
-
-            $json = json_decode($response->getBody(), true);
-            if ((int)Arr::get($json, 'items', 0) === 0){
-                return $transactions;
-            }
-
-            foreach ($json["{$type}Items"] as $item) {
-                $transactions->push($this->transactionFromJson($item));
-            }
-
-            $fromDateTime->addDay();
-        }
-        return $transactions;
+        return md5(microtime().mt_rand());
     }
 
     /**
      * Returns a HMAC based signature
      *
-     * @param string $timestamp Timestamp - in GMT, format "EEE, dd MMM yyyy HH:mm:ss"
-     * @param string $nonce unique random string, generated at the time of request, valid once, 20 or more
+     * @param  string  $timestamp  Timestamp - in GMT, format "EEE, dd MMM yyyy HH:mm:ss"
+     * @param  string  $nonce  unique random string, generated at the time of request, valid once, 20 or more
      * @return string
      */
     private function getSignature($timestamp, $nonce)
     {
-        $sign = 'GET' . $this->requestEndPoint . $timestamp . $nonce; // fixme:
+        $sign = 'GET'.$this->requestEndPoint.$timestamp.$nonce; // fixme:
         return $this->hmac($sign);
     }
 
@@ -439,25 +449,14 @@ class Zanox extends AbstractNetwork implements Network
         return $this->encodeBase64($hmac);
     }
 
-    private function encodeBase64( $string )
+    private function encodeBase64($string)
     {
         $encode = '';
 
-        for ($i=0; $i < strlen($string); $i+=2)
-        {
+        for ($i = 0; $i < strlen($string); $i += 2) {
             $encode .= chr(hexdec(substr($string, $i, 2)));
         }
 
         return base64_encode($encode);
-    }
-
-    private function assignTimestamp()
-    {
-        return gmdate('D, d M Y H:i:s T');
-    }
-
-    private function assignNonce()
-    {
-        return md5(microtime() . mt_rand());
     }
 }

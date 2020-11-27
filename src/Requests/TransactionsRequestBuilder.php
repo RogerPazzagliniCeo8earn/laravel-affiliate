@@ -46,6 +46,7 @@ class TransactionsRequestBuilder extends AbstractRequestBuilder
      */
     protected function executeCountForNetwork(Network $network): int
     {
-        return $network->executeTransactionsCountRequest($this->getPrograms($network), $this->fromDateTime, $this->toDateTime);
+        return $network->executeTransactionsCountRequest($this->getPrograms($network), $this->fromDateTime,
+            $this->toDateTime);
     }
 }
