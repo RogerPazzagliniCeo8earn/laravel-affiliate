@@ -4,6 +4,7 @@ namespace SoluzioneSoftware\LaravelAffiliate;
 
 use GuzzleHttp\Client;
 use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Database\Eloquent\Factory;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\ServiceProvider as BaseServiceProvider;
 use SoluzioneSoftware\LaravelAffiliate\Console\Feeds;
@@ -65,6 +66,7 @@ class ServiceProvider extends BaseServiceProvider
     {
         $this->registerAffiliate();
         $this->registerClient();
+        $this->registerEloquentFactories();
     }
 
     private function registerAffiliate()
@@ -80,6 +82,13 @@ class ServiceProvider extends BaseServiceProvider
     {
         $this->app->singleton('affiliate.client', function () {
             return new Client();
+        });
+    }
+
+    private function registerEloquentFactories()
+    {
+        $this->app->extend(Factory::class, function (Factory $factory) {
+            return $factory->load(__DIR__.'/../database/factories');
         });
     }
 }
