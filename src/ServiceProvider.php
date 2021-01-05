@@ -10,6 +10,7 @@ use Illuminate\Support\ServiceProvider as BaseServiceProvider;
 use SoluzioneSoftware\LaravelAffiliate\Console\Feeds;
 use SoluzioneSoftware\LaravelAffiliate\Console\Products;
 use SoluzioneSoftware\LaravelAffiliate\Models\Feed;
+use SoluzioneSoftware\LaravelAffiliate\Models\Product;
 use SoluzioneSoftware\LaravelAffiliate\Observers\FeedObserver;
 
 class ServiceProvider extends BaseServiceProvider
@@ -67,6 +68,7 @@ class ServiceProvider extends BaseServiceProvider
         $this->registerAffiliate();
         $this->registerClient();
         $this->registerEloquentFactories();
+        $this->registerBindings();
     }
 
     private function registerAffiliate()
@@ -90,5 +92,11 @@ class ServiceProvider extends BaseServiceProvider
         $this->app->extend(Factory::class, function (Factory $factory) {
             return $factory->load(__DIR__.'/../database/factories');
         });
+    }
+
+    private function registerBindings()
+    {
+        $this->app->bind(Feed::class, Feed::class);
+        $this->app->bind(Product::class, Product::class);
     }
 }

@@ -3,7 +3,8 @@
 namespace SoluzioneSoftware\LaravelAffiliate\Imports;
 
 use Illuminate\Console\OutputStyle;
-use SoluzioneSoftware\LaravelAffiliate\Models\Feed;
+use Illuminate\Contracts\Container\BindingResolutionException;
+use SoluzioneSoftware\LaravelAffiliate\Contracts\Feed;
 
 class ProductsImportWithProgress extends ProductsImport
 {
@@ -15,6 +16,7 @@ class ProductsImportWithProgress extends ProductsImport
     /**
      * @param  Feed  $feed
      * @param  OutputStyle  $output
+     * @throws BindingResolutionException
      */
     public function __construct(Feed $feed, OutputStyle $output)
     {

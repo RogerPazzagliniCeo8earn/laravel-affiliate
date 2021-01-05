@@ -13,12 +13,12 @@ use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\File;
 use Maatwebsite\Excel\Facades\Excel;
+use SoluzioneSoftware\LaravelAffiliate\Contracts\Feed;
 use SoluzioneSoftware\LaravelAffiliate\Contracts\Network;
 use SoluzioneSoftware\LaravelAffiliate\Imports\FeedsImport;
 use SoluzioneSoftware\LaravelAffiliate\Imports\FeedsImportWithProgress;
 use SoluzioneSoftware\LaravelAffiliate\Imports\ProductsImport;
 use SoluzioneSoftware\LaravelAffiliate\Imports\ProductsImportWithProgress;
-use SoluzioneSoftware\LaravelAffiliate\Models\Feed;
 use SoluzioneSoftware\LaravelAffiliate\Requests\CommissionRatesRequestBuilder;
 use SoluzioneSoftware\LaravelAffiliate\Requests\NetworkCommissionRatesRequestBuilder;
 use SoluzioneSoftware\LaravelAffiliate\Requests\NetworkTransactionsRequestBuilder;
@@ -243,6 +243,7 @@ class Affiliate
     /**
      * @param  Feed  $feed
      * @param  string  $path
+     * @throws BindingResolutionException
      * @throws Exception
      */
     private function importProducts(Feed $feed, string $path)

@@ -2,7 +2,6 @@
 
 namespace SoluzioneSoftware\LaravelAffiliate\Imports;
 
-use Exception;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\OnEachRow;
@@ -10,7 +9,7 @@ use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Row;
 use Matriphe\ISO639\ISO639;
-use SoluzioneSoftware\LaravelAffiliate\Models\Feed;
+use SoluzioneSoftware\LaravelAffiliate\Contracts\Feed;
 
 class FeedsImport implements WithHeadingRow, OnEachRow, ToCollection
 {
@@ -56,13 +55,12 @@ class FeedsImport implements WithHeadingRow, OnEachRow, ToCollection
 
     /**
      * @inheritDoc
-     * @throws Exception
      */
-    public function collection(Collection $rows)
+    public function collection(Collection $collection)
     {
         Feed::all()
-            ->each(function (Feed $feed) use ($rows) {
-                $isEmpty = $rows
+            ->each(function (Feed $feed) use ($collection) {
+                $isEmpty = $collection
                     ->where('feed_id', $feed->feed_id)
                     ->isEmpty();
 

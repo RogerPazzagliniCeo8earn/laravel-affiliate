@@ -1,27 +1,20 @@
 <?php
 
+use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-use SoluzioneSoftware\LaravelAffiliate\Models\Feed;
-use SoluzioneSoftware\LaravelAffiliate\Models\Product;
+use SoluzioneSoftware\LaravelAffiliate\Traits\ResolvesBindings;
 
 class CreateAffiliateProductsTable extends Migration
 {
-    public function getConnection()
-    {
-        return (new Product())->getConnectionName();
-    }
-
-    public static function getTable()
-    {
-        return (new Product())->getTable();
-    }
+    use ResolvesBindings;
 
     /**
      * Run the migrations.
      *
      * @return void
+     * @throws BindingResolutionException
      */
     public function up()
     {
@@ -45,16 +38,34 @@ class CreateAffiliateProductsTable extends Migration
             $table
                 ->foreign('feed_id')
                 ->references('id')
-                ->on((new Feed())->getTable())
+                ->on(static::resolveFeedModelBinding()->getTable())
                 ->onDelete('cascade');
-
         });
+    }
+
+    /**
+     * @return mixed|string|null
+     * @throws BindingResolutionException
+     */
+    public function getConnection()
+    {
+        return static::resolveProductModelBinding()->getConnectionName();
+    }
+
+    /**
+     * @return mixed|string
+     * @throws BindingResolutionException
+     */
+    public static function getTable()
+    {
+        return static::resolveProductModelBinding()->getTable();
     }
 
     /**
      * Reverse the migrations.
      *
      * @return void
+     * @throws BindingResolutionException
      */
     public function down()
     {

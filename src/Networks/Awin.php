@@ -6,6 +6,7 @@ use Carbon\Carbon;
 use DateTime;
 use Exception;
 use GuzzleHttp\Exception\GuzzleException;
+use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
@@ -15,17 +16,20 @@ use Illuminate\Support\Facades\DB;
 use RuntimeException;
 use SoluzioneSoftware\LaravelAffiliate\AbstractNetwork;
 use SoluzioneSoftware\LaravelAffiliate\Contracts\Network;
+use SoluzioneSoftware\LaravelAffiliate\Contracts\Product;
 use SoluzioneSoftware\LaravelAffiliate\Enums\TransactionStatus;
 use SoluzioneSoftware\LaravelAffiliate\Enums\ValueType;
-use SoluzioneSoftware\LaravelAffiliate\Models\Product;
 use SoluzioneSoftware\LaravelAffiliate\Objects\CommissionRate;
 use SoluzioneSoftware\LaravelAffiliate\Objects\Product as ProductObject;
 use SoluzioneSoftware\LaravelAffiliate\Objects\Program;
 use SoluzioneSoftware\LaravelAffiliate\Objects\Transaction;
+use SoluzioneSoftware\LaravelAffiliate\Traits\ResolvesBindings;
 use Throwable;
 
 class Awin extends AbstractNetwork implements Network
 {
+    use ResolvesBindings;
+
     const TRANSACTION_STATUS_MAPPING = [
         'approved' => TransactionStatus::CONFIRMED,
         'declined' => TransactionStatus::DECLINED,
@@ -86,13 +90,14 @@ class Awin extends AbstractNetwork implements Network
      * @param  string[]|null  $programs
      * @param  string[]|null  $languages
      * @return Builder
+     * @throws BindingResolutionException
      */
     private function getProductQueryBuilder(?string $keyword = null, ?array $programs = null, ?array $languages = null)
     {
-        $queryBuilder = Product::query();
+        $queryBuilder = static::resolveProductModelBinding()::query();
 
         if (!is_null($keyword)) {
-            $queryBuilder->whereKey(Product::search($keyword)->keys());
+            $queryBuilder->whereKey(static::resolveProductModelBinding()::search($keyword)->keys());
         }
 
         if (!is_null($programs)) {
@@ -132,6 +137,7 @@ class Awin extends AbstractNetwork implements Network
 
     /**
      * @inheritDoc
+     * @throws BindingResolutionException
      */
     public function executeProductsRequest(
         ?array $programs = null,
@@ -196,12 +202,13 @@ class Awin extends AbstractNetwork implements Network
 
     /**
      * @inheritDoc
+     * @throws BindingResolutionException
      */
     public function executeGetProduct(string $id, ?string $trackingCode = null): ?ProductObject
     {
         $this->trackingCode = $trackingCode;
 
-        $product = Product::with('feed')->where('product_id', $id)->first();
+        $product = static::resolveProductModelBinding()::with('feed')->where('product_id', $id)->first();
         if (is_null($product)) {
             return null;
         }

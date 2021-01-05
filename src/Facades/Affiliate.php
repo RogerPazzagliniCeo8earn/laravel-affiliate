@@ -4,8 +4,8 @@ namespace SoluzioneSoftware\LaravelAffiliate\Facades;
 
 use Illuminate\Console\OutputStyle;
 use Illuminate\Support\Facades\Facade;
+use SoluzioneSoftware\LaravelAffiliate\Contracts\Feed;
 use SoluzioneSoftware\LaravelAffiliate\Contracts\Network;
-use SoluzioneSoftware\LaravelAffiliate\Models\Feed;
 use SoluzioneSoftware\LaravelAffiliate\Requests\CommissionRatesRequestBuilder;
 use SoluzioneSoftware\LaravelAffiliate\Requests\NetworkCommissionRatesRequestBuilder;
 use SoluzioneSoftware\LaravelAffiliate\Requests\NetworkTransactionsRequestBuilder;

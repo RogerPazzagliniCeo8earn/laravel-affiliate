@@ -7,8 +7,8 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use SoluzioneSoftware\LaravelAffiliate\Contracts\Feed;
 use SoluzioneSoftware\LaravelAffiliate\Facades\Affiliate;
-use SoluzioneSoftware\LaravelAffiliate\Models\Feed;
 
 class UpdateProducts implements ShouldQueue
 {
@@ -23,11 +23,11 @@ class UpdateProducts implements ShouldQueue
     private $feed;
 
     /**
-     * @param  Feed  $commissionRate
+     * @param  Feed  $feed
      */
-    public function __construct(Feed $commissionRate)
+    public function __construct(Feed $feed)
     {
-        $this->feed = $commissionRate;
+        $this->feed = $feed;
     }
 
     /**

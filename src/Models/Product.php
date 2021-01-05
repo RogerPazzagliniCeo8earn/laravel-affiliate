@@ -7,6 +7,7 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Config;
 use Laravel\Scout\Searchable;
+use SoluzioneSoftware\LaravelAffiliate\Contracts\Product as ProductContract;
 
 /**
  * @property int feed_id
@@ -19,7 +20,7 @@ use Laravel\Scout\Searchable;
  * @property string currency
  * @property Carbon|null last_updated_at
  */
-class Product extends Model
+class Product extends Model implements ProductContract
 {
     use Searchable;
 
@@ -53,7 +54,6 @@ class Product extends Model
     {
         return $this->belongsTo(Feed::class);
     }
-
 
     /**
      * Get the indexable data array for the model.

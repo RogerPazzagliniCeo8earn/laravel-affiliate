@@ -1,26 +1,20 @@
 <?php
 
+use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-use SoluzioneSoftware\LaravelAffiliate\Models\Feed;
+use SoluzioneSoftware\LaravelAffiliate\Traits\ResolvesBindings;
 
 class CreateAffiliateFeedsTable extends Migration
 {
-    public function getConnection()
-    {
-        return (new Feed())->getConnectionName();
-    }
-
-    public static function getTable()
-    {
-        return (new Feed())->getTable();
-    }
+    use ResolvesBindings;
 
     /**
      * Run the migrations.
      *
      * @return void
+     * @throws BindingResolutionException
      */
     public function up()
     {
@@ -43,9 +37,28 @@ class CreateAffiliateFeedsTable extends Migration
     }
 
     /**
+     * @return mixed|string|null
+     * @throws BindingResolutionException
+     */
+    public function getConnection()
+    {
+        return static::resolveFeedModelBinding()->getConnectionName();
+    }
+
+    /**
+     * @return string
+     * @throws BindingResolutionException
+     */
+    public static function getTable()
+    {
+        return static::resolveFeedModelBinding()->getTable();
+    }
+
+    /**
      * Reverse the migrations.
      *
      * @return void
+     * @throws BindingResolutionException
      */
     public function down()
     {

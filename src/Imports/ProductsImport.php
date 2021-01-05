@@ -3,15 +3,18 @@
 namespace SoluzioneSoftware\LaravelAffiliate\Imports;
 
 use Exception;
+use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Database\Connection;
 use Illuminate\Database\Schema\Builder;
 use Illuminate\Support\Facades\Validator;
+use SoluzioneSoftware\LaravelAffiliate\Contracts\Feed;
 use SoluzioneSoftware\LaravelAffiliate\CsvImporter;
-use SoluzioneSoftware\LaravelAffiliate\Models\Feed;
-use SoluzioneSoftware\LaravelAffiliate\Models\Product;
+use SoluzioneSoftware\LaravelAffiliate\Traits\ResolvesBindings;
 
 class ProductsImport
 {
+    use ResolvesBindings;
+
     /**
      * @var Feed
      */
@@ -24,11 +27,12 @@ class ProductsImport
 
     /**
      * @param  Feed  $feed
+     * @throws BindingResolutionException
      */
     public function __construct(Feed $feed)
     {
         $this->feed = $feed;
-        $this->connection = (new Product())->getConnection();
+        $this->connection = static::resolveProductModelBinding()->getConnection();
     }
 
     /**
@@ -52,31 +56,9 @@ class ProductsImport
     {
     }
 
-    public function afterImport()
+    public function chunkSize(): int
     {
-    }
-
-    public function mapRow(array $row): ?array
-    {
-        $validator = Validator::make($row, [
-            'product_name' => "nullable|string|max:".Builder::$defaultStringLength,
-            'merchant_image_url' => 'nullable|url',
-        ]);
-
-        if ($validator->fails()) {
-            return null;
-        }
-
-        return [
-            'product_id' => $row['aw_product_id'],
-            'title' => $row['product_name'],
-            'description' => $row['description'],
-            'image_url' => $row['merchant_image_url'],
-            'details_link' => $row['merchant_deep_link'],
-            'price' => $row['search_price'],
-            'currency' => $row['currency'],
-            'last_updated_at' => $row['last_updated'] ?: null,
-        ];
+        return 1000;
     }
 
     /**
@@ -124,8 +106,30 @@ class ProductsImport
         }
     }
 
-    public function chunkSize(): int
+    public function mapRow(array $row): ?array
     {
-        return 1000;
+        $validator = Validator::make($row, [
+            'product_name' => "nullable|string|max:".Builder::$defaultStringLength,
+            'merchant_image_url' => 'nullable|url',
+        ]);
+
+        if ($validator->fails()) {
+            return null;
+        }
+
+        return [
+            'product_id' => $row['aw_product_id'],
+            'title' => $row['product_name'],
+            'description' => $row['description'],
+            'image_url' => $row['merchant_image_url'],
+            'details_link' => $row['merchant_deep_link'],
+            'price' => $row['search_price'],
+            'currency' => $row['currency'],
+            'last_updated_at' => $row['last_updated'] ?: null,
+        ];
+    }
+
+    public function afterImport()
+    {
     }
 }

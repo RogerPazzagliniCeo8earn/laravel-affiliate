@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Config;
+use SoluzioneSoftware\LaravelAffiliate\Contracts\Feed as FeedContract;
 
 /**
  * @property int id
@@ -23,9 +24,8 @@ use Illuminate\Support\Facades\Config;
  * @property int products_count
  * @property array original_data
  * @method static Builder enabled(bool $enabled = true)
- * @method static Builder whereNeedsUpdate()
  */
-class Feed extends Model
+class Feed extends Model implements FeedContract
 {
     protected $fillable = [
         'advertiser_id',
@@ -56,21 +56,6 @@ class Feed extends Model
         'downloaded_at',
     ];
 
-    public function getConnectionName()
-    {
-        return Config::get('affiliate.db.connection', parent::getConnectionName());
-    }
-
-    public function getTable()
-    {
-        return Config::get('affiliate.db.tables.feeds', parent::getTable());
-    }
-
-    public function products()
-    {
-        return $this->hasMany(Product::class);
-    }
-
     /**
      * @param  Builder|QueryBuilder  $query
      * @param  bool  $enabled
@@ -79,6 +64,14 @@ class Feed extends Model
     public static function scopeEnabled($query, bool $enabled = true)
     {
         return $query->where('enabled', $enabled);
+    }
+
+    /**
+     * @return Builder
+     */
+    public static function whereNeedsUpdate()
+    {
+        return static::scopeWhereNeedsUpdate(static::query());
     }
 
     /**
@@ -111,6 +104,21 @@ class Feed extends Model
             });
 
         return $query;
+    }
+
+    public function getConnectionName()
+    {
+        return Config::get('affiliate.db.connection', parent::getConnectionName());
+    }
+
+    public function getTable()
+    {
+        return Config::get('affiliate.db.tables.feeds', parent::getTable());
+    }
+
+    public function products()
+    {
+        return $this->hasMany(Product::class);
     }
 
     public function needsUpdate()

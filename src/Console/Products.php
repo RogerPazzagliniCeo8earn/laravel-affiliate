@@ -3,8 +3,8 @@
 namespace SoluzioneSoftware\LaravelAffiliate\Console;
 
 use Illuminate\Database\Eloquent\Collection;
+use SoluzioneSoftware\LaravelAffiliate\Contracts\Feed;
 use SoluzioneSoftware\LaravelAffiliate\Facades\Affiliate;
-use SoluzioneSoftware\LaravelAffiliate\Models\Feed;
 
 class Products extends Command
 {
