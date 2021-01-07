@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\App;
 use Illuminate\Support\ServiceProvider as BaseServiceProvider;
 use SoluzioneSoftware\LaravelAffiliate\Console\Feeds;
 use SoluzioneSoftware\LaravelAffiliate\Console\Products;
+use SoluzioneSoftware\LaravelAffiliate\Contracts\Feed as FeedContract;
+use SoluzioneSoftware\LaravelAffiliate\Contracts\Product as ProductContract;
 use SoluzioneSoftware\LaravelAffiliate\Models\Feed;
 use SoluzioneSoftware\LaravelAffiliate\Models\Product;
 use SoluzioneSoftware\LaravelAffiliate\Observers\FeedObserver;
@@ -96,7 +98,7 @@ class ServiceProvider extends BaseServiceProvider
 
     private function registerBindings()
     {
-        $this->app->bind(Feed::class, Feed::class);
-        $this->app->bind(Product::class, Product::class);
+        $this->app->bind(FeedContract::class, Feed::class);
+        $this->app->bind(ProductContract::class, Product::class);
     }
 }
