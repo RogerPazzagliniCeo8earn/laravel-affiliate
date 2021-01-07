@@ -67,16 +67,8 @@ class Feed extends Model implements FeedContract
     }
 
     /**
-     * @return Builder
-     */
-    public static function whereNeedsUpdate()
-    {
-        return static::scopeWhereNeedsUpdate(static::query());
-    }
-
-    /**
      * @param  Builder|QueryBuilder  $query
-     * @return mixed
+     * @return Builder|QueryBuilder
      */
     public static function scopeWhereNeedsUpdate($query)
     {

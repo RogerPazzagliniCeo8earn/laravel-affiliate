@@ -2,12 +2,16 @@
 
 namespace SoluzioneSoftware\LaravelAffiliate\Console;
 
+use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Database\Eloquent\Collection;
 use SoluzioneSoftware\LaravelAffiliate\Contracts\Feed;
 use SoluzioneSoftware\LaravelAffiliate\Facades\Affiliate;
+use SoluzioneSoftware\LaravelAffiliate\Traits\ResolvesBindings;
 
 class Products extends Command
 {
+    use ResolvesBindings;
+
     /**
      * The console command name.
      *
@@ -24,6 +28,7 @@ class Products extends Command
 
     /**
      * Execute the console command.
+     * @throws BindingResolutionException
      */
     public function handle()
     {
@@ -39,9 +44,14 @@ class Products extends Command
         $this->info('Done.');
     }
 
+    /**
+     * @return Collection
+     * @throws BindingResolutionException
+     */
     private function getFeeds(): Collection
     {
-        return Feed::whereNeedsUpdate()->get();
+        $feed = static::resolveFeedModelBinding();
+        return $feed::scopeWhereNeedsUpdate($feed::query())->get();
     }
 
 }

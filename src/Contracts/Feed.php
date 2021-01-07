@@ -4,13 +4,15 @@ namespace SoluzioneSoftware\LaravelAffiliate\Contracts;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Query\Builder as QueryBuilder;
 
 interface Feed extends Model
 {
     /**
-     * @return Builder
+     * @param  Builder|QueryBuilder  $query
+     * @return Builder|QueryBuilder
      */
-    public static function whereNeedsUpdate();
+    public static function scopeWhereNeedsUpdate($query);
 
     /**
      * @return HasMany
