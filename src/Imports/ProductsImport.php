@@ -6,6 +6,7 @@ use Exception;
 use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Database\Connection;
 use Illuminate\Database\Schema\Builder;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Validator;
 use SoluzioneSoftware\LaravelAffiliate\Contracts\Feed;
 use SoluzioneSoftware\LaravelAffiliate\CsvImporter;
@@ -58,7 +59,7 @@ class ProductsImport
 
     public function chunkSize(): int
     {
-        return 1000;
+        return Config::get('affiliate.product_feeds.import_chunk_size');
     }
 
     /**

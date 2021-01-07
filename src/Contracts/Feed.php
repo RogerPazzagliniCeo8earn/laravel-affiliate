@@ -18,4 +18,6 @@ interface Feed extends Model
      * @return HasMany
      */
     public function products();
+
+    public function getProductsCount(): int;
 }

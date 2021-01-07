@@ -137,4 +137,9 @@ class Feed extends Model implements FeedContract
             || !$this->imported_at
             || $this->imported_at->greaterThan($this->downloaded_at);
     }
+
+    public function getProductsCount(): int
+    {
+        return $this->products_count;
+    }
 }

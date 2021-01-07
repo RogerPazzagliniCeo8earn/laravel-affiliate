@@ -46,6 +46,11 @@ return [
          * Example: ['en', 'it']
          */
         'languages' => null,
+
+        /*
+         * int
+         */
+        'import_chunk_size' => 1000,
     ],
 
     'networks' => [

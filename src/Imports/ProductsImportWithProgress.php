@@ -35,7 +35,7 @@ class ProductsImportWithProgress extends ProductsImport
     {
         parent::beforeImport();
 
-        $this->output->progressStart();
+        $this->output->progressStart($this->feed->getProductsCount());
     }
 
     public function afterImport()
