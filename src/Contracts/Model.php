@@ -41,6 +41,26 @@ interface Model
     public function getConnectionName();
 
     /**
+     * @return mixed
+     */
+    public function getKey();
+
+    /**
+     * @return string
+     */
+    public function getKeyName();
+
+    /**
+     * @return string
+     */
+    public function getForeignKey();
+
+//    /**
+//     * @return string
+//     */
+//    public function getUpdatedAtColumn();
+
+    /**
      * @param  array  $attributes
      * @param  array  $options
      * @return bool
@@ -51,6 +71,12 @@ interface Model
      * @return bool|null
      */
     public function delete();
+
+    /**
+     * @param  \Illuminate\Support\Collection|array|int  $ids
+     * @return int
+     */
+    public static function destroy($ids);
 
     /**
      * @return array

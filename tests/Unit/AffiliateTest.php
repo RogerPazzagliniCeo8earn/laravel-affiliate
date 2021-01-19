@@ -11,6 +11,7 @@ use GuzzleHttp\Psr7\Response;
 use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\File;
 use Maatwebsite\Excel\ExcelServiceProvider;
 use Maatwebsite\Excel\Facades\Excel;
@@ -57,7 +58,7 @@ class AffiliateTest extends TestCase
     {
         $path = __DIR__.'/../Fixtures/feeds.csv';
 
-        $this->assertTrue(static::resolveFeedModelBinding()->doesntExist());
+        $this->assertTrue(static::resolveFeedModelBinding()->query()->doesntExist());
 
         $mock = new MockHandler([
             new Response(200, ['Content-Type' => 'text/csv;charset=UTF-8'], file_get_contents($path))
@@ -127,6 +128,7 @@ class AffiliateTest extends TestCase
         /** @var Feed $feed */
         $feed = factory(Feed::class)->create();
 
+        Config::set('affiliate.product_feeds.import_chunk_size', 1);
         $mock = new MockHandler([
             new Response(200, ['Content-Type' => 'application/zip'],
                 file_get_contents(__DIR__.'/../Fixtures/products.zip'))
