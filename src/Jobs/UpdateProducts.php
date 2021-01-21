@@ -19,6 +19,13 @@ class UpdateProducts implements ShouldQueue
     use SerializesModels;
 
     /**
+     * The number of seconds the job can run before timing out.
+     *
+     * @var int
+     */
+    public $timeout = 60 * 60; // 1 hour
+
+    /**
      * @var Feed
      */
     private $feed;
