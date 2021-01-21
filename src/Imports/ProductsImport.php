@@ -9,7 +9,6 @@ use Illuminate\Database\Connection;
 use Illuminate\Database\Schema\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Config;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
@@ -53,7 +52,8 @@ class ProductsImport
     {
         $this->feed = $feed;
         $this->connection = static::resolveProductModelBinding()->getConnection();
-        $this->dbProducts = DB::table(static::resolveProductModelBinding()->getTable())
+        $this->dbProducts = $this->connection
+            ->table(static::resolveProductModelBinding()->getTable())
             ->where($feed->getForeignKey(), $feed->getKey())
             ->get(['last_updated_at', 'product_id']);
     }
@@ -272,7 +272,7 @@ class ProductsImport
                 return $product->{static::resolveProductModelBinding()->getKeyName()};
             });
 
-        $deleted = DB::table(static::resolveProductModelBinding()->getTable())
+        $deleted = $this->connection->table(static::resolveProductModelBinding()->getTable())
             ->whereIn(static::resolveProductModelBinding()->getKeyName(), $toDeleteKeys)
             ->delete();
 
@@ -300,7 +300,7 @@ class ProductsImport
             return $product['product_id'];
         }, $this->processedProducts);
 
-        return DB::table(static::resolveProductModelBinding()->getTable())
+        return $this->connection->table(static::resolveProductModelBinding()->getTable())
             ->where($this->feed->getForeignKey(), $this->feed->getKey())
             ->whereNotIn('product_id', $processedIds)
             ->get();
