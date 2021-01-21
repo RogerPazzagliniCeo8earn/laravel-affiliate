@@ -9,7 +9,7 @@ abstract class AbstractEvent
     /**
      * @var Feed
      */
-    private $feed;
+    public $feed;
 
     /**
      * @var array
