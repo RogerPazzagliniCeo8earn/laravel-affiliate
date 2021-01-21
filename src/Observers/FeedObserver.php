@@ -10,12 +10,12 @@ class FeedObserver
     /**
      * Handle the feed "created" event.
      *
-     * @param Feed $feed
+     * @param  Feed  $feed
      * @return void
      */
     public function created(Feed $feed)
     {
-        if ($feed->needsUpdate()){
+        if ($feed->needsUpdate()) {
             UpdateProducts::dispatch($feed);
         }
     }
@@ -23,7 +23,7 @@ class FeedObserver
     /**
      * Handle the feed "updated" event.
      *
-     * @param Feed $feed
+     * @param  Feed  $feed
      * @return void
      */
     public function updated(Feed $feed)
@@ -31,7 +31,7 @@ class FeedObserver
         if (
             $feed->wasChanged(['enabled', 'region', 'language', 'imported_at', 'products_updated_at'])
             && $feed->needsUpdate()
-        ){
+        ) {
             UpdateProducts::dispatch($feed);
         }
     }
@@ -39,7 +39,7 @@ class FeedObserver
     /**
      * Handle the feed "deleted" event.
      *
-     * @param Feed $feed
+     * @param  Feed  $feed
      * @return void
      */
     public function deleted(Feed $feed)
@@ -50,7 +50,7 @@ class FeedObserver
     /**
      * Handle the feed "restored" event.
      *
-     * @param Feed $feed
+     * @param  Feed  $feed
      * @return void
      */
     public function restored(Feed $feed)
@@ -61,7 +61,7 @@ class FeedObserver
     /**
      * Handle the feed "force deleted" event.
      *
-     * @param Feed $feed
+     * @param  Feed  $feed
      * @return void
      */
     public function forceDeleted(Feed $feed)
