@@ -184,7 +184,7 @@ class Affiliate
             $this->importProducts($feed, $file);
         }
 
-//        $feed->update(['products_updated_at' => Date::now()]);
+        $feed->update(['products_updated_at' => Date::now()]);
     }
 
     private function downloadProducts(Feed $feed, string $path)
