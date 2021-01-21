@@ -100,7 +100,11 @@ class ProductsImport
         $updatedProducts = [];
 
         foreach ($rows as $row) {
-            $product = array_merge($this->mapRow($row), [$feedForeignKey => $feedKey]);
+            $mappedRow = $this->mapRow($row);
+            if (!$mappedRow) {
+                continue;
+            }
+            $product = array_merge($mappedRow, [$feedForeignKey => $feedKey]);
             $res = $this->processRow($product);
             if ($res === true) {
                 $newProducts[] = $product;
@@ -123,6 +127,7 @@ class ProductsImport
         ]);
 
         if ($validator->fails()) {
+            Log::info('Row validation fail: '.json_encode($row));
             return null;
         }
 
