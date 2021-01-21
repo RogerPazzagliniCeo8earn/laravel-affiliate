@@ -209,7 +209,7 @@ class ProductsImport
         }
 
         if (static::resolveProductModelBinding()::query()->insert($products)) {
-            Event::dispatch(new ProductsInsertedEvent($products));
+            Event::dispatch(new ProductsInsertedEvent($this->feed, $products));
         } else {
             Log::info("Products weren't inserted");
         }
@@ -245,7 +245,7 @@ class ProductsImport
         }
 
         if (count($products) !== 0) {
-            Event::dispatch(new ProductsUpdatedEvent($products));
+            Event::dispatch(new ProductsUpdatedEvent($this->feed, $products));
         }
     }
 
@@ -291,7 +291,7 @@ class ProductsImport
                     return get_object_vars($product);
                 })
                 ->toArray();
-            Event::dispatch(new ProductsDeletedEvent($deletedProducts));
+            Event::dispatch(new ProductsDeletedEvent($this->feed, $deletedProducts));
         }
     }
 
