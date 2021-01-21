@@ -7,6 +7,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Config;
 use SoluzioneSoftware\LaravelAffiliate\Contracts\Feed;
 use SoluzioneSoftware\LaravelAffiliate\Facades\Affiliate;
 
@@ -28,6 +29,10 @@ class UpdateProducts implements ShouldQueue
     public function __construct(Feed $feed)
     {
         $this->feed = $feed;
+
+        $this
+            ->onConnection(Config::get('affiliate.queue.connection'))
+            ->onQueue(Config::get('affiliate.queue.name'));
     }
 
     /**
