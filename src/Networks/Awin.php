@@ -38,29 +38,30 @@ class Awin extends AbstractNetwork implements Network
     ];
     /**
      * @var string
+     * @link https://wiki.awin.com/index.php/Publisher_Click_Ref
+     */
+    private static $TRACKING_CODE_PARAM;
+
+    /**
+     * @var string
+     */
+    private static $PUBLISHER_ID;
+
+    /**
+     * @var string
      */
     protected $baseUrl = 'https://api.awin.com';
+
     /**
      * @var string
      */
     private $apiToken;
-    /**
-     * @var string
-     */
-    private $publisherId;
-    /**
-     * @var string
-     * @link https://wiki.awin.com/index.php/Publisher_Click_Ref
-     */
-    private $trackingCodeParam;
 
     public function __construct()
     {
         parent::__construct();
 
         $this->apiToken = Config::get('affiliate.credentials.awin.api_token');
-        $this->publisherId = Config::get('affiliate.credentials.awin.publisher_id');
-        $this->trackingCodeParam = Config::get('affiliate.networks.awin.tracking_code_param');
     }
 
     /**
@@ -171,8 +172,9 @@ class Awin extends AbstractNetwork implements Network
             $product['image_url'],
             floatval($product['price']),
             $product['currency'],
-            $this->getDetailsLink($product),
-            $this->getTrackingLink($product),
+            $this->getDetailsUrl($product),
+            $this->getTrackingUrl($this->trackingCode,
+                ['advertiserId' => $product['feed']['advertiser_id'], 'productId' => $product['product_id']]),
             $product
         );
     }
@@ -186,18 +188,34 @@ class Awin extends AbstractNetwork implements Network
         );
     }
 
-    protected function getDetailsLink(array $product)
+    protected function getDetailsUrl(array $product)
     {
         return $product['details_link'];
     }
 
-    protected function getTrackingLink(array $product)
+    public static function getTrackingUrl(string $trackingCode, array $params = []): string
     {
         return 'https://www.awin1.com/pclick.php'
-            ."?p={$product['product_id']}"
-            ."&a={$this->publisherId}"
-            ."&m={$product['feed']['advertiser_id']}"
-            .($this->trackingCode ? '&'.strtolower($this->trackingCodeParam).'='.$this->trackingCode : '');
+            ."?p=".$params['productId']
+            ."&a=".static::getPublisherId()
+            ."&m=".$params['advertiserId']
+            .'&'.strtolower(static::getTrackingCodeParam()).'='.$trackingCode;
+    }
+
+    private static function getPublisherId(): string
+    {
+        if (!static::$PUBLISHER_ID) {
+            static::$PUBLISHER_ID = Config::get('affiliate.credentials.awin.publisher_id');
+        }
+        return static::$PUBLISHER_ID;
+    }
+
+    private static function getTrackingCodeParam(): string
+    {
+        if (!static::$TRACKING_CODE_PARAM) {
+            static::$TRACKING_CODE_PARAM = Config::get('affiliate.networks.awin.tracking_code_param');
+        }
+        return static::$TRACKING_CODE_PARAM;
     }
 
     /**
@@ -243,7 +261,7 @@ class Awin extends AbstractNetwork implements Network
         $fromDateTime = is_null($fromDateTime) ? Date::now() : $fromDateTime;
         $toDateTime = is_null($toDateTime) ? Date::now() : $toDateTime;
 
-        $this->requestEndPoint = "/publishers/{$this->publisherId}/transactions/";
+        $this->requestEndPoint = '/publishers/'.static::getPublisherId().'/transactions/';
         $this->queryParams = [
             'timezone' => 'UTC', // fixme: parametrize it
             'startDate' => $fromDateTime->format('Y-m-d\TH:i:s'),
@@ -298,7 +316,7 @@ class Awin extends AbstractNetwork implements Network
      */
     private function getTrackingCodeFromTransaction(array $transaction)
     {
-        return Arr::get($transaction, 'clickRefs.'.$this->trackingCodeParam);
+        return Arr::get($transaction, 'clickRefs.'.static::getTrackingCodeParam());
     }
 
     /**
@@ -322,7 +340,7 @@ class Awin extends AbstractNetwork implements Network
         int $perPage = 100
     ): Collection {
 //        fixme: consider pagination params
-        $this->requestEndPoint = "/publishers/{$this->publisherId}/commissiongroups";
+        $this->requestEndPoint = '/publishers/'.static::getPublisherId().'/commissiongroups';
 
         $this->queryParams['advertiserId'] = $programId;
 

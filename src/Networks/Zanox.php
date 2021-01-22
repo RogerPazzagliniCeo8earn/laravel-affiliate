@@ -171,8 +171,8 @@ class Zanox extends AbstractNetwork implements Network
             Arr::get($product, 'image.large'),
             floatval($product['price']),
             $product['currency'],
-            $this->getDetailsLink($product),
-            $this->getTrackingLink($product),
+            $this->getDetailsUrl($product),
+            static::getTrackingUrl($this->trackingCode, ['trackingUrl' => $this->getDetailsUrl($product)]),
             $product
         );
     }
@@ -182,15 +182,15 @@ class Zanox extends AbstractNetwork implements Network
         return new Program($this, $program['@id'], $program['$']);
     }
 
-    protected function getDetailsLink(array $product)
+    protected function getDetailsUrl(array $product)
     {
         return Arr::get($product, 'trackingLinks.trackingLink.0.ppc');
     }
 
-    protected function getTrackingLink(array $product)
+    public static function getTrackingUrl(string $trackingCode, array $params = []): string
     {
-        $link = $this->getDetailsLink($product);
-        return $link ? $link.($this->trackingCode ? '&'.static::TRACKING_CODE_PARAM.'='.$this->trackingCode : '') : null;
+        $url = $params['trackingUrl'];
+        return $url.'&'.static::TRACKING_CODE_PARAM.'='.$trackingCode;
     }
 
     /**

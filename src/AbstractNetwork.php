@@ -187,12 +187,13 @@ abstract class AbstractNetwork implements Network
      * @param  array  $product
      * @return string|null
      */
-    abstract protected function getDetailsLink(array $product);
+    abstract protected function getDetailsUrl(array $product);
 
     /**
-     * @param  array  $product
-     * @return string|null
+     * @param  string  $trackingCode
+     * @param  array  $params
+     * @return string
      */
-    abstract protected function getTrackingLink(array $product);
+    abstract public static function getTrackingUrl(string $trackingCode, array $params = []): string;
 
 }

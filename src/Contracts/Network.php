@@ -114,4 +114,11 @@ interface Network
         int $page = 1,
         int $perPage = 100
     ): Collection;
+
+    /**
+     * @param  string  $trackingCode
+     * @param  array  $params
+     * @return string
+     */
+    public static function getTrackingUrl(string $trackingCode, array $params = []): string;
 }

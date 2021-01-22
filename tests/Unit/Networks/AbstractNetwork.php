@@ -6,6 +6,7 @@ use GuzzleHttp\Client;
 use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Psr7\Response;
+use Illuminate\Support\Facades\Config;
 use SoluzioneSoftware\LaravelAffiliate\Contracts\Network;
 use Tests\TestCase;
 
@@ -17,6 +18,7 @@ abstract class AbstractNetwork extends TestCase
     public function execute_commission_rates_request()
     {
         $this->mockClient($this->getCommissionRatesMockHandler());
+        Config::set('affiliate.credentials.awin.publisher_id', '123');
 
         $commissionRates = $this->makeNetwork()->executeCommissionRatesRequest(0);
 
@@ -29,6 +31,7 @@ abstract class AbstractNetwork extends TestCase
     public function execute_transactions_request()
     {
         $this->mockClient($this->getTransactionsMockHandler());
+        Config::set('affiliate.networks.awin.tracking_code_param', 'abc');
 
         $commissionGroups = $this->makeNetwork()->executeTransactionsRequest();
 
