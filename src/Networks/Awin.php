@@ -173,7 +173,7 @@ class Awin extends AbstractNetwork implements Network
             floatval($product['price']),
             $product['currency'],
             $this->getDetailsUrl($product),
-            $this->getTrackingUrl($this->trackingCode,
+            $this->getTrackingUrl((string) $this->trackingCode,
                 ['advertiserId' => $product['feed']['advertiser_id'], 'productId' => $product['product_id']]),
             $product
         );
