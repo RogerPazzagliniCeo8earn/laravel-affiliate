@@ -189,17 +189,21 @@ class Affiliate
 
     private function downloadProducts(Feed $feed, string $path)
     {
-        $columns = [
-            'product_name',
-            'description',
-            'aw_product_id',
-            'merchant_image_url',
-            'search_price',
-            'currency',
-            'merchant_deep_link',
-            'data_feed_id',
-            'last_updated',
-        ];
+        $columns = array_merge(
+            Config::get('affiliate.product_feeds.extra_columns'),
+            [
+                'product_name',
+                'description',
+                'aw_product_id',
+                'merchant_image_url',
+                'search_price',
+                'currency',
+                'merchant_deep_link',
+                'data_feed_id',
+                'last_updated',
+            ]
+        );
+
         $url = "https://productdata.awin.com"
             ."/datafeed/download"
             ."/apikey/{$this->apiKey()}"

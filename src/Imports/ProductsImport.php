@@ -7,6 +7,7 @@ use Exception;
 use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Database\Connection;
 use Illuminate\Database\Schema\Builder;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Event;
@@ -45,6 +46,11 @@ class ProductsImport
     protected $processedProducts = [];
 
     /**
+     * @var array
+     */
+    protected $extraColumns = [];
+
+    /**
      * @param  Feed  $feed
      * @throws BindingResolutionException
      */
@@ -56,6 +62,7 @@ class ProductsImport
             ->table(static::resolveProductModelBinding()->getTable())
             ->where($feed->getForeignKey(), $feed->getKey())
             ->get(['last_updated_at', 'product_id']);
+        $this->extraColumns = Config::get('affiliate.product_feeds.extra_columns');
     }
 
     /**
@@ -131,16 +138,25 @@ class ProductsImport
             return null;
         }
 
-        return [
-            'product_id' => $row['aw_product_id'],
-            'title' => $row['product_name'],
-            'description' => $row['description'],
-            'image_url' => $row['merchant_image_url'],
-            'details_link' => $row['merchant_deep_link'],
-            'price' => $row['search_price'],
-            'currency' => $row['currency'],
-            'last_updated_at' => $row['last_updated'] ?: null,
-        ];
+        $mappedRow = [];
+
+        foreach ($this->extraColumns as $extraColumn) {
+            $mappedRow[$extraColumn] = Arr::get($row, $extraColumn);
+        }
+
+        return array_merge(
+            $mappedRow,
+            [
+                'product_id' => $row['aw_product_id'],
+                'title' => $row['product_name'],
+                'description' => $row['description'],
+                'image_url' => $row['merchant_image_url'],
+                'details_link' => $row['merchant_deep_link'],
+                'price' => $row['search_price'],
+                'currency' => $row['currency'],
+                'last_updated_at' => $row['last_updated'] ?: null,
+            ]
+        );
     }
 
     /**
@@ -208,11 +224,36 @@ class ProductsImport
             return;
         }
 
-        if (static::resolveProductModelBinding()::query()->insert($products)) {
+        $inserted = static::resolveProductModelBinding()::query()
+            ->insert(
+                array_map(
+                    function (array $product) {
+                        return $this->prepareForDB($product);
+                    },
+                    $products
+                )
+            );
+
+        if ($inserted) {
             Event::dispatch(new ProductsInsertedEvent($this->feed, $products));
         } else {
             Log::info("Products weren't inserted");
         }
+    }
+
+    protected function prepareForDB(array $product): array
+    {
+        return Arr::only($product, [
+            $this->feed->getForeignKey(),
+            'product_id',
+            'title',
+            'description',
+            'image_url',
+            'details_link',
+            'price',
+            'currency',
+            'last_updated_at',
+        ]);
     }
 
     /**
@@ -234,7 +275,7 @@ class ProductsImport
             $updated = static::resolveProductModelBinding()::query()
                 ->where($feedForeignKey, $feedKey)
                 ->where('product_id', $product['product_id'])
-                ->update($product);
+                ->update($this->prepareForDB($product));
             if ($updated > 0) {
                 $updatedProducts[] = $product;
             }

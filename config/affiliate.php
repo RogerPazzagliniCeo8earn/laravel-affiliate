@@ -24,6 +24,12 @@ return [
 
     'product_feeds' => [
         /*
+         * array
+         * Extra columns to download
+         */
+        'extra_columns' => [],
+
+        /*
          * null|string
          * The path where to store product feed files.
          * If set to null, storage_path('affiliate/feed') will be used.

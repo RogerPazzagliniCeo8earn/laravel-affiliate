@@ -129,6 +129,7 @@ class AffiliateTest extends TestCase
         $feed = factory(Feed::class)->create();
 
         Config::set('affiliate.product_feeds.import_chunk_size', 1);
+        Config::set('affiliate.product_feeds.extra_columns', []);
         $mock = new MockHandler([
             new Response(200, ['Content-Type' => 'application/zip'],
                 file_get_contents(__DIR__.'/../Fixtures/products.zip'))
