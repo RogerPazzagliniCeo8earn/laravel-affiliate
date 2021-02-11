@@ -252,11 +252,21 @@ class Affiliate
      */
     private function importProducts(Feed $feed, string $path)
     {
-        $import = $this->output
-            ? new ProductsImportWithProgress($feed, $this->output)
-            : new ProductsImport($feed);
+        $import = $this->getFeedsImport($feed);
 
         $this->writeLine('Importing...');
         $import->import($path);
+    }
+
+    /**
+     * @param  Feed  $feed
+     * @return ProductsImport
+     * @throws BindingResolutionException
+     */
+    protected function getFeedsImport(Feed $feed): ProductsImport
+    {
+        return $this->output
+            ? new ProductsImportWithProgress($feed, $this->output)
+            : new ProductsImport($feed);
     }
 }
