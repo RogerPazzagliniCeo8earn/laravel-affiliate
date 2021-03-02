@@ -19,7 +19,7 @@ use SoluzioneSoftware\LaravelAffiliate\Requests\TransactionsRequestBuilder;
  * @method static TransactionsRequestBuilder transactions()
  * @method static NetworkTransactionsRequestBuilder networkTransactions(Network $network)
  * @method static void updateFeeds(?OutputStyle $output = null)
- * @method static void updateProducts(Feed $feed, ?OutputStyle $output = null)
+ * @method static void updateProducts(Feed $feed, ?OutputStyle $output = null, bool $forceDownload = false)
  *
  * @see \SoluzioneSoftware\LaravelAffiliate\Affiliate
  */

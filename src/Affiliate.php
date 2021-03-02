@@ -160,9 +160,10 @@ class Affiliate
     /**
      * @param  Feed  $feed
      * @param  OutputStyle|null  $output
-     * @throws Exception
+     * @param  bool  $forceDownload
+     * @throws BindingResolutionException
      */
-    public function updateProducts(Feed $feed, ?OutputStyle $output = null)
+    public function updateProducts(Feed $feed, ?OutputStyle $output = null, bool $forceDownload = false)
     {
         $this->output = $output;
 
@@ -172,7 +173,7 @@ class Affiliate
 
         $this->writeLine("Processing feed ID:{$feed->id}...");
 
-        if (!count(glob($feedPath.DIRECTORY_SEPARATOR.'*.csv')) || $feed->needsDownload()) {
+        if (!count(glob($feedPath.DIRECTORY_SEPARATOR.'*.csv')) || $forceDownload || $feed->needsDownload()) {
             $this->downloadProducts($feed, $zipPath);
             $this->extract($zipPath, $path.DIRECTORY_SEPARATOR.$feed->feed_id);
             $this->deleteFile($zipPath);
