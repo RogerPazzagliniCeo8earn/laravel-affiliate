@@ -5,7 +5,7 @@ namespace SoluzioneSoftware\LaravelAffiliate\Imports;
 use Illuminate\Console\OutputStyle;
 use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Support\Collection;
-use SoluzioneSoftware\LaravelAffiliate\Contracts\Feed;
+use SoluzioneSoftware\LaravelAffiliate\Models\Feed;
 
 class ProductsImportWithProgress extends ProductsImport
 {

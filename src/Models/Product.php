@@ -7,7 +7,6 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Config;
 use Laravel\Scout\Searchable;
-use SoluzioneSoftware\LaravelAffiliate\Contracts\Product as ProductContract;
 
 /**
  * @property int feed_id
@@ -20,7 +19,7 @@ use SoluzioneSoftware\LaravelAffiliate\Contracts\Product as ProductContract;
  * @property string currency
  * @property Carbon|null last_updated_at
  */
-class Product extends Model implements ProductContract
+class Product extends Model
 {
     use Searchable;
 

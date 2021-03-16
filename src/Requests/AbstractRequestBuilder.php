@@ -6,8 +6,7 @@ use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use SoluzioneSoftware\LaravelAffiliate\Contracts\Network;
-use SoluzioneSoftware\LaravelAffiliate\Networks\Awin;
-use SoluzioneSoftware\LaravelAffiliate\Networks\Zanox;
+use SoluzioneSoftware\LaravelAffiliate\Facades\Affiliate;
 use SoluzioneSoftware\LaravelAffiliate\Paginator;
 use SoluzioneSoftware\LaravelAffiliate\Traits\InteractsWithThrowable;
 
@@ -122,11 +121,7 @@ abstract class AbstractRequestBuilder
      */
     private function getAvailableNetworks()
     {
-        // todo: scan Networks directory
-        return [
-            Awin::class,
-            Zanox::class,
-        ];
+        return Affiliate::getNetworks();
     }
 
     /**

@@ -2,7 +2,7 @@
 
 namespace SoluzioneSoftware\LaravelAffiliate\Events;
 
-use SoluzioneSoftware\LaravelAffiliate\Contracts\Feed;
+use SoluzioneSoftware\LaravelAffiliate\Models\Feed;
 
 abstract class AbstractEvent
 {

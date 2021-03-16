@@ -20,9 +20,10 @@ class CreateAffiliateFeedsTable extends Migration
     {
         Schema::connection($this->getConnection())->create($this->getTable(), function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->unsignedInteger('advertiser_id');
+            $table->string('network');
+            $table->string('feed_id');
+            $table->string('advertiser_id');
             $table->string('advertiser_name');
-            $table->unsignedInteger('feed_id')->unique(); // note: for now, we are not considering affiliate network
             $table->boolean('joined');
             $table->boolean('enabled')->default(false);
             $table->string('region');
@@ -33,6 +34,8 @@ class CreateAffiliateFeedsTable extends Migration
             $table->dateTime('products_updated_at')->nullable();
             $table->json('original_data');
             $table->timestamps();
+
+            $table->unique(['network', 'feed_id']);
         });
     }
 

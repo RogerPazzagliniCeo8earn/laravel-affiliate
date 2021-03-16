@@ -8,6 +8,7 @@ use GuzzleHttp\Exception\GuzzleException;
 use Illuminate\Container\Container;
 use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Config;
 use Psr\Http\Message\ResponseInterface;
 use SoluzioneSoftware\LaravelAffiliate\Contracts\Network;
 use SoluzioneSoftware\LaravelAffiliate\Objects\CommissionRate;
@@ -84,6 +85,24 @@ abstract class AbstractNetwork implements Network
     public static function transactions()
     {
         return new NetworkTransactionsRequestBuilder(new static());
+    }
+
+    /**
+     * @param  string  $trackingCode
+     * @param  array  $params
+     * @return string
+     */
+    abstract public static function getTrackingUrl(string $trackingCode, array $params = []): string;
+
+    /**
+     * @param  string  $key
+     * @param  mixed|null  $default
+     * @return mixed
+     */
+    protected static function getNetworkConfig(string $key, $default = null)
+    {
+        $network = static::getKey();
+        return Config::get("affiliate.networks.$network.$key", $default);
     }
 
     /**
@@ -183,17 +202,20 @@ abstract class AbstractNetwork implements Network
         return ['Accept' => 'application/json'];
     }
 
+    protected function getFeedsTable()
+    {
+        return Config::get('affiliate.db.tables.feeds');
+    }
+
+    protected function getProductsTable()
+    {
+        return Config::get('affiliate.db.tables.products');
+    }
+
     /**
      * @param  array  $product
      * @return string|null
      */
     abstract protected function getDetailsUrl(array $product);
-
-    /**
-     * @param  string  $trackingCode
-     * @param  array  $params
-     * @return string
-     */
-    abstract public static function getTrackingUrl(string $trackingCode, array $params = []): string;
 
 }

@@ -16,6 +16,11 @@ interface Network
     public static function getMaxPerPage(): ?int;
 
     /**
+     * @return string
+     */
+    public static function getKey(): string;
+
+    /**
      * @return NetworkProductsRequestBuilder
      */
     public static function products(): NetworkProductsRequestBuilder;
@@ -28,9 +33,21 @@ interface Network
     public static function getProduct(string $id, ?string $trackingCode = null): ?Product;
 
     /**
-     * @param string[]|null $programs
-     * @param string|null $keyword
-     * @param string[]|null $languages
+     * @return NetworkTransactionsRequestBuilder
+     */
+    public static function transactions();
+
+    /**
+     * @param  string  $trackingCode
+     * @param  array  $params
+     * @return string
+     */
+    public static function getTrackingUrl(string $trackingCode, array $params = []): string;
+
+    /**
+     * @param  string[]|null  $programs
+     * @param  string|null  $keyword
+     * @param  string[]|null  $languages
      * @return int
      */
     public function executeProductsCountRequest(
@@ -58,16 +75,11 @@ interface Network
     ): Collection;
 
     /**
-     * @param string $id
-     * @param string|null $trackingCode
+     * @param  string  $id
+     * @param  string|null  $trackingCode
      * @return Product|null
      */
     public function executeGetProduct(string $id, ?string $trackingCode = null): ?Product;
-
-    /**
-     * @return NetworkTransactionsRequestBuilder
-     */
-    public static function transactions();
 
     /**
      * @param  string[]|null  $programs
@@ -114,11 +126,4 @@ interface Network
         int $page = 1,
         int $perPage = 100
     ): Collection;
-
-    /**
-     * @param  string  $trackingCode
-     * @param  array  $params
-     * @return string
-     */
-    public static function getTrackingUrl(string $trackingCode, array $params = []): string;
 }

@@ -7,13 +7,16 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Config;
-use SoluzioneSoftware\LaravelAffiliate\Contracts\Feed as FeedContract;
+use InvalidArgumentException;
+use SoluzioneSoftware\LaravelAffiliate\Contracts\Network;
+use SoluzioneSoftware\LaravelAffiliate\Facades\Affiliate;
 
 /**
  * @property int id
+ * @property string network
+ * @property string feed_id
  * @property int advertiser_id
  * @property string advertiser_name
- * @property int feed_id
  * @property bool joined
  * @property bool enabled
  * @property string region
@@ -25,12 +28,13 @@ use SoluzioneSoftware\LaravelAffiliate\Contracts\Feed as FeedContract;
  * @property array original_data
  * @method static Builder enabled(bool $enabled = true)
  */
-class Feed extends Model implements FeedContract
+class Feed extends Model
 {
     protected $fillable = [
+        'network',
+        'feed_id',
         'advertiser_id',
         'advertiser_name',
-        'feed_id',
         'joined',
         'enabled',
         'region',
@@ -43,7 +47,6 @@ class Feed extends Model implements FeedContract
     ];
 
     protected $casts = [
-        'feed_id' => 'integer',
         'joined' => 'boolean',
         'enabled' => 'boolean',
         'products_count' => 'integer',
@@ -106,6 +109,15 @@ class Feed extends Model implements FeedContract
     public function getTable()
     {
         return Config::get('affiliate.db.tables.feeds', parent::getTable());
+    }
+
+    /**
+     * @return Network
+     * @throws InvalidArgumentException
+     */
+    public function getNetwork(): Network
+    {
+        return Affiliate::resolveNetwork($this->network);
     }
 
     public function products()

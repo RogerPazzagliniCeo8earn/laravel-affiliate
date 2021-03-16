@@ -1,19 +1,6 @@
 <?php
 
 return [
-    'credentials' => [
-        'awin' => [
-            'api_token' => env('AWIN_API_TOKEN'),
-            'publisher_id' => env('AWIN_PUBLISHER_ID'),
-            'product_feed_api_key' => env('AWIN_PRODUCT_FEED_API_KEY'),
-        ],
-        'zanox' => [
-            'connect_id' => env('ZANOX_CONNECT_ID'),
-            'secret_key' => env('ZANOX_SECRET_KEY'),
-            'ad_space_id' => env('ZANOX_AD_SPACE_ID'),
-        ],
-    ],
-
     'db' => [
         'connection' => 'mysql',
         'tables' => [
@@ -23,12 +10,6 @@ return [
     ],
 
     'product_feeds' => [
-        /*
-         * array
-         * Extra columns to download
-         */
-        'extra_columns' => [],
-
         /*
          * null|string
          * The path where to store product feed files.
@@ -59,17 +40,13 @@ return [
         'import_chunk_size' => 1000,
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Networks Configuration
+    |--------------------------------------------------------------------------
+    */
     'networks' => [
-        'awin' => [
-            /*
-             * see https://wiki.awin.com/index.php/Publisher_Click_Ref
-             */
-            'tracking_code_param' => 'clickRef',
-        ],
-
-        'zanox' => [
-            //
-        ],
+        //
     ],
 
     /*

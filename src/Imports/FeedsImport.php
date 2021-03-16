@@ -2,35 +2,19 @@
 
 namespace SoluzioneSoftware\LaravelAffiliate\Imports;
 
+use Exception;
 use Illuminate\Contracts\Container\BindingResolutionException;
-use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\OnEachRow;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Row;
-use Matriphe\ISO639\ISO639;
-use SoluzioneSoftware\LaravelAffiliate\Contracts\Feed;
+use SoluzioneSoftware\LaravelAffiliate\Models\Feed;
 use SoluzioneSoftware\LaravelAffiliate\Traits\ResolvesBindings;
 
-class FeedsImport implements WithHeadingRow, OnEachRow, ToCollection
+class FeedsImport extends AbstractImport implements WithHeadingRow, OnEachRow, ToCollection
 {
     use ResolvesBindings;
-
-    public static function getAttributeNames()
-    {
-        return [
-            'advertiser_id',
-            'advertiser_name',
-            'feed_id',
-            'joined',
-            'enabled',
-            'products_count',
-            'imported_at',
-            'region',
-            'language',
-        ];
-    }
 
     /**
      * @inheritDoc
@@ -38,33 +22,39 @@ class FeedsImport implements WithHeadingRow, OnEachRow, ToCollection
      */
     public function onRow(Row $row)
     {
-        $data = static::map($row->toArray());
+        $row = $row->toArray();
+        $data = array_merge(
+            $this->mapRow($row),
+            [
+                'original_data' => $row,
+            ]
+        );
 
-        static::resolveFeedModelBinding()::query()->updateOrCreate(Arr::only($data, 'feed_id'), $data);
+        static::resolveFeedModelBinding()::query()
+            ->updateOrCreate(
+                [
+                    'network' => $this->network->getKey(),
+                    'feed_id' => $data['feed_id'],
+                ],
+                $data
+            );
     }
 
-    public static function map(array $row)
+    public function mapRow(array $row): array
     {
-        return [
-            'advertiser_id' => (string) $row['advertiser_id'],
-            'advertiser_name' => $row['advertiser_name'],
-            'feed_id' => $row['feed_id'],
-            'joined' => $row['membership_status'] === 'active',
-            'products_count' => $row['no_of_products'],
-            'imported_at' => $row['last_imported'], // fixme: consider timezone
-            'region' => $row['primary_region'],
-            'language' => (new ISO639)->code1ByLanguage($row['language']),
-            'original_data' => $row,
-        ];
+        return $this->network->mapProductFeedRow($row);
     }
 
     /**
      * @inheritDoc
      * @throws BindingResolutionException
+     * @throws Exception
      */
     public function collection(Collection $collection)
     {
-        static::resolveFeedModelBinding()::all()
+        static::resolveFeedModelBinding()::query()
+            ->where('network', $this->network->getKey())
+            ->get()
             ->each(function (Feed $feed) use ($collection) {
                 $isEmpty = $collection
                     ->where('feed_id', $feed->feed_id)

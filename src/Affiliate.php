@@ -3,7 +3,6 @@
 namespace SoluzioneSoftware\LaravelAffiliate;
 
 use Chumper\Zipper\Facades\Zipper;
-use Exception;
 use GuzzleHttp\ClientInterface;
 use Illuminate\Console\OutputStyle;
 use Illuminate\Container\Container;
@@ -12,13 +11,16 @@ use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Log;
+use InvalidArgumentException;
 use Maatwebsite\Excel\Facades\Excel;
-use SoluzioneSoftware\LaravelAffiliate\Contracts\Feed;
 use SoluzioneSoftware\LaravelAffiliate\Contracts\Network;
+use SoluzioneSoftware\LaravelAffiliate\Contracts\NetworkWithProductFeeds;
 use SoluzioneSoftware\LaravelAffiliate\Imports\FeedsImport;
 use SoluzioneSoftware\LaravelAffiliate\Imports\FeedsImportWithProgress;
 use SoluzioneSoftware\LaravelAffiliate\Imports\ProductsImport;
 use SoluzioneSoftware\LaravelAffiliate\Imports\ProductsImportWithProgress;
+use SoluzioneSoftware\LaravelAffiliate\Models\Feed;
 use SoluzioneSoftware\LaravelAffiliate\Requests\CommissionRatesRequestBuilder;
 use SoluzioneSoftware\LaravelAffiliate\Requests\NetworkCommissionRatesRequestBuilder;
 use SoluzioneSoftware\LaravelAffiliate\Requests\NetworkTransactionsRequestBuilder;
@@ -34,6 +36,13 @@ class Affiliate
      * @var ClientInterface
      */
     protected $client;
+
+    /**
+     * Registered networks.
+     *
+     * @var string[]
+     */
+    protected $networks = [];
 
     /**
      * @throws BindingResolutionException
@@ -68,6 +77,44 @@ class Affiliate
     }
 
     /**
+     * @param  string  $class
+     * @return void
+     */
+    public function registerNetwork(string $class)
+    {
+        $interface = Network::class;
+
+        if (!isset(class_implements($class)[$interface])) {
+            throw new InvalidArgumentException("Class '$class' must implement '$interface' interface.");
+        }
+
+        /** @var Network $class */
+        $this->networks[$class::getKey()] = $class;
+    }
+
+    /**
+     * @return string[]
+     */
+    public function getNetworks()
+    {
+        return $this->networks;
+    }
+
+    /**
+     * @param  string  $key
+     * @return Network
+     * @throws InvalidArgumentException
+     */
+    public function resolveNetwork(string $key): Network
+    {
+        if (!array_key_exists($key, $this->networks)) {
+            throw new InvalidArgumentException("'$key' is not a valid network key.");
+        }
+
+        return new $this->networks[$key]();
+    }
+
+    /**
      * @param  Network  $network
      * @return CommissionRatesRequestBuilder
      */
@@ -85,52 +132,43 @@ class Affiliate
         return new NetworkTransactionsRequestBuilder($network);
     }
 
-    public function updateFeeds(?OutputStyle $output = null)
+    public function updateFeeds(NetworkWithProductFeeds $network, ?OutputStyle $output = null)
     {
         $this->output = $output;
 
-        $listPath = $this->path().DIRECTORY_SEPARATOR.'feeds.csv';
-        $this->downloadFeeds($listPath);
-        $this->importFeeds($listPath);
+        $path = $this->path($network->getKey()).DIRECTORY_SEPARATOR.'feeds.csv';
+        $this->downloadFeeds($network, $path);
+        $this->importFeeds($network, $path);
     }
 
     public static function path(string $path = '')
     {
-        $basePath =
-            Config::get('affiliate.product_feeds.directory_path')
-            ?? App::storagePath().DIRECTORY_SEPARATOR.'affiliate';
-        $fullPath = $basePath.($path ? DIRECTORY_SEPARATOR.$path : $path);
+        $basePath = Config::get('affiliate.product_feeds.directory_path');
+        if (empty($basePath)) {
+            $basePath = App::storagePath().DIRECTORY_SEPARATOR.'affiliate';
+        }
+        Log::debug("basePath: $basePath");
+        $fullPath = $basePath.(!empty($path) ? DIRECTORY_SEPARATOR.$path : $path);
         static::ensureDirectoryExists($fullPath);
         return $fullPath;
     }
 
     protected static function ensureDirectoryExists(string $path)
     {
-        return File::isDirectory($path) or File::makeDirectory($path, 0777, true, true);
+        return File::isDirectory($path) || File::makeDirectory($path, 0777, true, true);
     }
 
-    private function downloadFeeds(string $path)
+    private function downloadFeeds(NetworkWithProductFeeds $network, string $path)
     {
-        $url = "https://productdata.awin.com/datafeed/list/apikey/{$this->apiKey()}";
+        $total = 0;
 
         $this->writeLine('Downloading...');
 
-        $total = 0;
         $this->progressStart();
 
-        $this->client->get(
-            $url,
-            [
-                'sink' => $path,
-                'progress' => $this->getDownloadProgressCallable($total),
-            ]);
+        $network->downloadFeeds($path, $this->getDownloadProgressCallable($total));
 
         $this->progressFinish();
-    }
-
-    protected function apiKey()
-    {
-        return Config::get('affiliate.credentials.awin.product_feed_api_key');
     }
 
     protected function getDownloadProgressCallable(int &$total): callable
@@ -147,14 +185,23 @@ class Affiliate
         };
     }
 
-    protected function importFeeds(string $path)
+    protected function importFeeds(NetworkWithProductFeeds $network, string $path)
     {
-        $import = $this->output
-            ? new FeedsImportWithProgress($this->output)
-            : new FeedsImport();
+        $import = $this->getFeedsImport($network);
 
         $this->writeLine('Importing...');
         Excel::import($import, $path);
+    }
+
+    /**
+     * @param  NetworkWithProductFeeds  $network
+     * @return FeedsImport
+     */
+    protected function getFeedsImport(NetworkWithProductFeeds $network): FeedsImport
+    {
+        return $this->output
+            ? new FeedsImportWithProgress($network, $this->output)
+            : new FeedsImport($network);
     }
 
     /**
@@ -163,19 +210,22 @@ class Affiliate
      * @param  bool  $forceDownload
      * @throws BindingResolutionException
      */
-    public function updateProducts(Feed $feed, ?OutputStyle $output = null, bool $forceDownload = false)
-    {
+    public function updateProducts(
+        Feed $feed,
+        ?OutputStyle $output = null,
+        bool $forceDownload = false
+    ) {
         $this->output = $output;
-
+        $feedKey = $feed->getKey();
         $path = $this->path('products');
-        $feedPath = $this->path('products'.DIRECTORY_SEPARATOR.$feed->feed_id);
-        $zipPath = $path.DIRECTORY_SEPARATOR."{$feed->feed_id}.zip";
+        $feedPath = $this->path('products'.DIRECTORY_SEPARATOR.$feedKey);
+        $zipPath = $path.DIRECTORY_SEPARATOR."{$feedKey}.zip";
 
-        $this->writeLine("Processing feed ID:{$feed->id}...");
+        $this->writeLine("Processing feed ID:{$feedKey}...");
 
         if (!count(glob($feedPath.DIRECTORY_SEPARATOR.'*.csv')) || $forceDownload || $feed->needsDownload()) {
             $this->downloadProducts($feed, $zipPath);
-            $this->extract($zipPath, $path.DIRECTORY_SEPARATOR.$feed->feed_id);
+            $this->extract($zipPath, $path.DIRECTORY_SEPARATOR.$feedKey);
             $this->deleteFile($zipPath);
         } else {
             $this->writeLine('Using cached file...');
@@ -190,43 +240,12 @@ class Affiliate
 
     private function downloadProducts(Feed $feed, string $path)
     {
-        $columns = array_merge(
-            Config::get('affiliate.product_feeds.extra_columns'),
-            [
-                'product_name',
-                'description',
-                'aw_product_id',
-                'merchant_image_url',
-                'search_price',
-                'currency',
-                'merchant_deep_link',
-                'data_feed_id',
-                'last_updated',
-            ]
-        );
-
-        $url = "https://productdata.awin.com"
-            ."/datafeed/download"
-            ."/apikey/{$this->apiKey()}"
-            ."/fid/{$feed->feed_id}"
-            ."/format/csv"
-            ."/language/any"
-            ."/delimiter/%2C" // comma
-            ."/compression/zip"
-            ."/columns/".implode('%2C', $columns);
-
         $this->writeLine('Downloading...');
 
         $total = 0;
         $this->progressStart();
 
-        $this->client->get(
-            $url,
-            [
-                'sink' => $path,
-                'progress' => $this->getDownloadProgressCallable($total),
-            ]
-        );
+        $feed->getNetwork()->downloadFeedProducts($feed, $path, $this->getDownloadProgressCallable($total));
 
         $this->progressFinish();
 
@@ -249,11 +268,10 @@ class Affiliate
      * @param  Feed  $feed
      * @param  string  $path
      * @throws BindingResolutionException
-     * @throws Exception
      */
     private function importProducts(Feed $feed, string $path)
     {
-        $import = $this->getFeedsImport($feed);
+        $import = $this->getProductsImport($feed);
 
         $this->writeLine('Importing...');
         $import->import($path);
@@ -264,7 +282,7 @@ class Affiliate
      * @return ProductsImport
      * @throws BindingResolutionException
      */
-    protected function getFeedsImport(Feed $feed): ProductsImport
+    protected function getProductsImport(Feed $feed): ProductsImport
     {
         return $this->output
             ? new ProductsImportWithProgress($feed, $this->output)

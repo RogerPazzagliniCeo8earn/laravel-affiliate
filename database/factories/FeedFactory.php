@@ -9,9 +9,10 @@ use SoluzioneSoftware\LaravelAffiliate\Models\Feed;
 $factory
     ->define(Feed::class, function (Faker $faker) {
         return [
-            'advertiser_id' => $faker->numberBetween(1, 4294967295),
+            'network' => $faker->word,
+            'feed_id' => (string) $faker->numberBetween(1, 4294967295),
+            'advertiser_id' => (string) $faker->numberBetween(1, 4294967295),
             'advertiser_name' => $faker->company,
-            'feed_id' => $faker->unique()->numberBetween(1, 4294967295),
             'joined' => $faker->boolean,
             'enabled' => $faker->boolean,
             'region' => $faker->countryCode,

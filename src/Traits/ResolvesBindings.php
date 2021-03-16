@@ -4,8 +4,8 @@ namespace SoluzioneSoftware\LaravelAffiliate\Traits;
 
 use Illuminate\Container\Container;
 use Illuminate\Contracts\Container\BindingResolutionException;
-use SoluzioneSoftware\LaravelAffiliate\Contracts\Feed;
-use SoluzioneSoftware\LaravelAffiliate\Contracts\Product;
+use SoluzioneSoftware\LaravelAffiliate\Models\Feed;
+use SoluzioneSoftware\LaravelAffiliate\Models\Product;
 
 trait ResolvesBindings
 {

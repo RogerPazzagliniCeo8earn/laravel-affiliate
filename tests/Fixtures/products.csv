@@ -1,6 +1,0 @@
-product_name,description,aw_product_id,merchant_image_url,search_price,currency,merchant_deep_link,data_feed_id,last_updated
-"product 1","description 1",1,https://example.com/image1.jpg,0.99,EUR,https://example.com/1,1,
-"product 2","description 2",2,https://example.com/image2.jpg,1.0,EUR,https://example.com/2,1,2017-07-20
-"product 3","description 3",3,https://example.com/image3.jpg,1.99,EUR,https://example.com/3,1,2017-07-20T00:00:00
-"product 4","description 4",4,https://example.com/image4.jpg,999.99,EUR,https://example.com/4,1,2017-07-20 00:00:00
-"product 5","description 5",5,https://example.com/image5.jpg,1000,EUR,https://example.com/5,1,

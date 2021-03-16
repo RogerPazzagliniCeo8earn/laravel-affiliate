@@ -13,15 +13,17 @@ use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
-use SoluzioneSoftware\LaravelAffiliate\Contracts\Feed;
+use InvalidArgumentException;
+use SoluzioneSoftware\LaravelAffiliate\Contracts\NetworkWithProductFeeds;
 use SoluzioneSoftware\LaravelAffiliate\CsvImporter;
 use SoluzioneSoftware\LaravelAffiliate\Events\ProductsDeletedEvent;
 use SoluzioneSoftware\LaravelAffiliate\Events\ProductsInsertedEvent;
 use SoluzioneSoftware\LaravelAffiliate\Events\ProductsUpdatedEvent;
+use SoluzioneSoftware\LaravelAffiliate\Models\Feed;
 use SoluzioneSoftware\LaravelAffiliate\Traits\ResolvesBindings;
 use stdClass;
 
-class ProductsImport
+class ProductsImport extends AbstractImport
 {
     use ResolvesBindings;
 
@@ -46,23 +48,25 @@ class ProductsImport
     protected $processedProducts = [];
 
     /**
-     * @var array
-     */
-    protected $extraColumns = [];
-
-    /**
      * @param  Feed  $feed
      * @throws BindingResolutionException
      */
     public function __construct(Feed $feed)
     {
+        $network = $feed->getNetwork();
+        if (!($network instanceof NetworkWithProductFeeds)) {
+            $class = get_class($network);
+            throw new InvalidArgumentException("Class '$class' must implement '".NetworkWithProductFeeds::class."' interface.");
+        }
+
+        parent::__construct($network);
+
         $this->feed = $feed;
         $this->connection = static::resolveProductModelBinding()->getConnection();
         $this->dbProducts = $this->connection
             ->table(static::resolveProductModelBinding()->getTable())
             ->where($feed->getForeignKey(), $feed->getKey())
             ->get(['last_updated_at', 'product_id']);
-        $this->extraColumns = Config::get('affiliate.product_feeds.extra_columns');
     }
 
     /**
@@ -128,9 +132,11 @@ class ProductsImport
 
     public function mapRow(array $row): ?array
     {
-        $validator = Validator::make($row, [
-            'product_name' => "nullable|string|max:".Builder::$defaultStringLength,
-            'merchant_image_url' => 'nullable|url',
+        $mappedRow = $this->network->mapProductRow($row);
+
+        $validator = Validator::make($mappedRow, [
+            'title' => "nullable|string|max:".Builder::$defaultStringLength,
+            'image_url' => 'nullable|url',
         ]);
 
         if ($validator->fails()) {
@@ -138,25 +144,7 @@ class ProductsImport
             return null;
         }
 
-        $mappedRow = [];
-
-        foreach ($this->extraColumns as $extraColumn) {
-            $mappedRow[$extraColumn] = Arr::get($row, $extraColumn);
-        }
-
-        return array_merge(
-            $mappedRow,
-            [
-                'product_id' => $row['aw_product_id'],
-                'title' => $row['product_name'],
-                'description' => $row['description'],
-                'image_url' => $row['merchant_image_url'],
-                'details_link' => $row['merchant_deep_link'],
-                'price' => $row['search_price'],
-                'currency' => $row['currency'],
-                'last_updated_at' => $row['last_updated'] ?: null,
-            ]
-        );
+        return $mappedRow;
     }
 
     /**
