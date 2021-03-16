@@ -11,7 +11,6 @@ use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Log;
 use InvalidArgumentException;
 use Maatwebsite\Excel\Facades\Excel;
 use SoluzioneSoftware\LaravelAffiliate\Contracts\Network;
@@ -147,7 +146,6 @@ class Affiliate
         if (empty($basePath)) {
             $basePath = App::storagePath().DIRECTORY_SEPARATOR.'affiliate';
         }
-        Log::debug("basePath: $basePath");
         $fullPath = $basePath.(!empty($path) ? DIRECTORY_SEPARATOR.$path : $path);
         static::ensureDirectoryExists($fullPath);
         return $fullPath;
