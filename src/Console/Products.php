@@ -50,8 +50,7 @@ class Products extends Command
      */
     private function getFeeds(): Collection
     {
-        $feed = static::resolveFeedModelBinding();
-        return $feed::scopeWhereNeedsUpdate($feed::query())->get();
+        return static::resolveFeedModelBinding()::whereNeedsUpdate()->get();
     }
 
 }

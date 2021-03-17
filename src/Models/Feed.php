@@ -26,7 +26,8 @@ use SoluzioneSoftware\LaravelAffiliate\Facades\Affiliate;
  * @property Carbon|null downloaded_at
  * @property int products_count
  * @property array original_data
- * @method static Builder enabled(bool $enabled = true)
+ * @method static Builder whereEnabled(bool $enabled = true)
+ * @method static Builder whereNeedsUpdate()
  */
 class Feed extends Model
 {
@@ -62,9 +63,9 @@ class Feed extends Model
     /**
      * @param  Builder|QueryBuilder  $query
      * @param  bool  $enabled
-     * @return mixed
+     * @return Builder|QueryBuilder
      */
-    public static function scopeEnabled($query, bool $enabled = true)
+    public static function scopeWhereEnabled($query, bool $enabled = true)
     {
         return $query->where('enabled', $enabled);
     }
