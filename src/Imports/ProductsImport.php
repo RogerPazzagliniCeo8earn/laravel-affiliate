@@ -212,11 +212,20 @@ class ProductsImport extends AbstractImport
             return;
         }
 
-        $inserted = static::resolveProductModelBinding()::query()
+        $model = static::resolveProductModelBinding();
+        $time = $model->freshTimestamp();
+
+        $inserted = $model::query()
             ->insert(
                 array_map(
-                    function (array $product) {
-                        return $this->prepareForDB($product);
+                    function (array $product) use ($time, $model) {
+                        return array_merge(
+                            [
+                                $model->getCreatedAtColumn() => $time,
+                                $model->getUpdatedAtColumn() => $time,
+                            ],
+                            $this->prepareForDB($product)
+                        );
                     },
                     $products
                 )
@@ -258,12 +267,21 @@ class ProductsImport extends AbstractImport
         $feedKey = $this->feed->getKey();
 
         $updatedProducts = [];
+        $model = static::resolveProductModelBinding();
 
         foreach ($products as $product) {
-            $updated = static::resolveProductModelBinding()::query()
+            $updated = $model::query()
                 ->where($feedForeignKey, $feedKey)
                 ->where('product_id', $product['product_id'])
-                ->update($this->prepareForDB($product));
+                ->update(
+                    array_merge(
+                        [
+                            $model->getUpdatedAtColumn() => $model->freshTimestamp(),
+                        ],
+                        $this->prepareForDB($product)
+                    )
+                );
+
             if ($updated > 0) {
                 $updatedProducts[] = $product;
             }
