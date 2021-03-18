@@ -13,11 +13,12 @@ class Products extends Command
     use ResolvesBindings;
 
     /**
-     * The console command name.
+     * The name and signature of the console command.
      *
      * @var string
      */
-    protected $name = 'affiliate:products';
+    protected $signature = 'affiliate:products
+                            {--force : Ignore previously downloaded files}';
 
     /**
      * The console command description.
@@ -38,7 +39,7 @@ class Products extends Command
 
         $feeds
             ->each(function (Feed $feed) {
-                Affiliate::updateProducts($feed, $this->output);
+                Affiliate::updateProducts($feed, $this->output, $this->option('force'));
             });
 
         $this->info('Done.');
