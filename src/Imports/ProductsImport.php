@@ -66,7 +66,7 @@ class ProductsImport extends AbstractImport
         $this->dbProducts = $this->connection
             ->table(static::resolveProductModelBinding()->getTable())
             ->where($feed->getForeignKey(), $feed->getKey())
-            ->get(['last_updated_at', 'product_id']);
+            ->get(['last_updated_at', 'product_id', 'updated_at']);
     }
 
     /**
@@ -197,9 +197,15 @@ class ProductsImport extends AbstractImport
      */
     protected function rowWasUpdated(array $new, array $old): bool
     {
-        return empty($new['last_updated_at'])
-            || empty($old['last_updated_at'])
-            || new DateTime($new['last_updated_at']) > new DateTime($old['last_updated_at']);
+        return (
+                empty($new['last_updated_at'])
+                || empty($old['last_updated_at'])
+                || new DateTime($new['last_updated_at']) > new DateTime($old['last_updated_at'])
+            )
+            && ( // check if product is already imported
+                empty($old['updated_at'])
+                || $this->feed->imported_at->greaterThanOrEqualTo(new DateTime($old['updated_at']))
+            );
     }
 
     /**
