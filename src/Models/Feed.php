@@ -3,7 +3,6 @@
 namespace SoluzioneSoftware\LaravelAffiliate\Models;
 
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Config;
@@ -100,11 +99,6 @@ class Feed extends Model
             });
 
         return $query;
-    }
-
-    public function getConnectionName()
-    {
-        return Config::get('affiliate.db.connection', parent::getConnectionName());
     }
 
     public function getTable()

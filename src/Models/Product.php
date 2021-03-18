@@ -2,7 +2,6 @@
 
 namespace SoluzioneSoftware\LaravelAffiliate\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Config;
@@ -38,11 +37,6 @@ class Product extends Model
     protected $dates = [
         'last_updated_at',
     ];
-
-    public function getConnectionName()
-    {
-        return Config::get('affiliate.db.connection', parent::getConnectionName());
-    }
 
     public function getTable()
     {
