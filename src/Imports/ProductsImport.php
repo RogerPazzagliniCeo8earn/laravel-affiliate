@@ -48,6 +48,11 @@ class ProductsImport extends AbstractImport
     protected $processedProducts = [];
 
     /**
+     * @var int
+     */
+    protected $chunkSize;
+
+    /**
      * @param  Feed  $feed
      * @throws BindingResolutionException
      */
@@ -67,6 +72,7 @@ class ProductsImport extends AbstractImport
             ->table(static::resolveProductModelBinding()->getTable())
             ->where($feed->getForeignKey(), $feed->getKey())
             ->get(['last_updated_at', 'product_id', 'updated_at']);
+        $this->chunkSize = (int) Config::get('affiliate.chunk_size', 1000);
     }
 
     /**
@@ -325,42 +331,60 @@ class ProductsImport extends AbstractImport
             return;
         }
 
-        $toDeleteKeys = $toDelete
-            ->map(function (stdClass $product) {
-                return $product->{static::resolveProductModelBinding()->getKeyName()};
+        $toDelete
+            ->chunk($this->chunkSize)
+            ->each(function (Collection $products) {
+                $toDeleteKeys = $products
+                    ->map(function (stdClass $product) {
+                        return $product->{static::resolveProductModelBinding()->getKeyName()};
+                    });
+
+                $deleted = $this->connection->table(static::resolveProductModelBinding()->getTable())
+                    ->whereIn(static::resolveProductModelBinding()->getKeyName(), $toDeleteKeys)
+                    ->delete();
+
+                if ($fails = $toDeleteKeys->count() - $deleted !== 0) {
+                    Log::info("$fails products weren't deleted");
+                }
+
+                if ($deleted !== 0) {
+                    $deletedProducts = $products
+                        ->map(function (stdClass $product) {
+                            return get_object_vars($product);
+                        })
+                        ->toArray();
+                    Event::dispatch(new ProductsDeletedEvent($this->feed, $deletedProducts));
+                }
             });
-
-        $deleted = $this->connection->table(static::resolveProductModelBinding()->getTable())
-            ->whereIn(static::resolveProductModelBinding()->getKeyName(), $toDeleteKeys)
-            ->delete();
-
-        if ($fails = $toDeleteKeys->count() - $deleted !== 0) {
-            Log::info("$fails products weren't deleted");
-        }
-
-        if ($deleted !== 0) {
-            $deletedProducts = $toDelete
-                ->map(function (stdClass $product) {
-                    return get_object_vars($product);
-                })
-                ->toArray();
-            Event::dispatch(new ProductsDeletedEvent($this->feed, $deletedProducts));
-        }
     }
 
     /**
      * @return Collection
-     * @throws BindingResolutionException
      */
     protected function getRowsToDelete(): Collection
     {
-        $processedIds = array_map(function (array $product) {
-            return $product['product_id'];
-        }, $this->processedProducts);
+        $processedIds = array_map(
+            function (array $product) {
+                return $product['product_id'];
+            },
+            $this->processedProducts
+        );
 
-        return $this->connection->table(static::resolveProductModelBinding()->getTable())
-            ->where($this->feed->getForeignKey(), $this->feed->getKey())
-            ->whereNotIn('product_id', $processedIds)
-            ->get();
+        $toDelete = collect();
+
+        $this->feed
+            ->products()
+            ->toBase()
+            ->latest()
+            ->chunk($this->chunkSize, function (Collection $products) use ($toDelete, $processedIds) {
+                $products
+                    ->each(function (stdClass $product) use ($toDelete, $processedIds) {
+                        if (!in_array($product->product_id, $processedIds)) {
+                            $toDelete->add($product);
+                        }
+                    });
+            });
+
+        return $toDelete;
     }
 }
