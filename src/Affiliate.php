@@ -20,7 +20,9 @@ use SoluzioneSoftware\LaravelAffiliate\Imports\FeedsImportWithProgress;
 use SoluzioneSoftware\LaravelAffiliate\Imports\ProductsImport;
 use SoluzioneSoftware\LaravelAffiliate\Imports\ProductsImportWithProgress;
 use SoluzioneSoftware\LaravelAffiliate\Models\Feed;
+use SoluzioneSoftware\LaravelAffiliate\Requests\AdvertisersRequestBuilder;
 use SoluzioneSoftware\LaravelAffiliate\Requests\CommissionRatesRequestBuilder;
+use SoluzioneSoftware\LaravelAffiliate\Requests\NetworkAdvertisersRequestBuilder;
 use SoluzioneSoftware\LaravelAffiliate\Requests\NetworkCommissionRatesRequestBuilder;
 use SoluzioneSoftware\LaravelAffiliate\Requests\NetworkTransactionsRequestBuilder;
 use SoluzioneSoftware\LaravelAffiliate\Requests\ProductsRequestBuilder;
@@ -285,5 +287,28 @@ class Affiliate
         return $this->output
             ? new ProductsImportWithProgress($feed, $this->output)
             : new ProductsImport($feed);
+    }
+
+    public function updateAdvertisers(Network $network, ?OutputStyle $output = null)
+    {
+        $this->output = $output;
+        // todo:
+    }
+
+    /**
+     * @return AdvertisersRequestBuilder
+     */
+    public function advertisers()
+    {
+        return new AdvertisersRequestBuilder();
+    }
+
+    /**
+     * @param  Network  $network
+     * @return NetworkAdvertisersRequestBuilder
+     */
+    public function networkAdvertisers(Network $network)
+    {
+        return new NetworkAdvertisersRequestBuilder($network);
     }
 }

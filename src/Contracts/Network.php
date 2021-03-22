@@ -5,6 +5,7 @@ namespace SoluzioneSoftware\LaravelAffiliate\Contracts;
 use DateTime;
 use Illuminate\Support\Collection;
 use SoluzioneSoftware\LaravelAffiliate\Objects\Product;
+use SoluzioneSoftware\LaravelAffiliate\Requests\NetworkAdvertisersRequestBuilder;
 use SoluzioneSoftware\LaravelAffiliate\Requests\NetworkProductsRequestBuilder;
 use SoluzioneSoftware\LaravelAffiliate\Requests\NetworkTransactionsRequestBuilder;
 
@@ -43,6 +44,11 @@ interface Network
      * @return string
      */
     public static function getTrackingUrl(string $trackingCode, array $params = []): string;
+
+    /**
+     * @return NetworkAdvertisersRequestBuilder
+     */
+    public static function advertisers(): NetworkAdvertisersRequestBuilder;
 
     /**
      * @param  string[]|null  $programs
@@ -126,4 +132,16 @@ interface Network
         int $page = 1,
         int $perPage = 100
     ): Collection;
+
+    /**
+     * @return int
+     */
+    public function executeAdvertisersCountRequest(): int;
+
+    /**
+     * @param  int  $page
+     * @param  int|null  $perPage
+     * @return Collection
+     */
+    public function executeAdvertisersRequest(int $page = 1, ?int $perPage = null): Collection;
 }

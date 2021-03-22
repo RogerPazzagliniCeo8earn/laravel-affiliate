@@ -4,6 +4,7 @@ return [
     'db' => [
         'connection' => 'mysql',
         'tables' => [
+            'advertisers' => 'advertisers',
             'feeds' => 'feeds',
             'products' => 'products',
         ],
