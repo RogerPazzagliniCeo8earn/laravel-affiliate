@@ -35,7 +35,7 @@ interface Network
     /**
      * @return NetworkTransactionsRequestBuilder
      */
-    public static function transactions();
+    public static function transactions(): NetworkTransactionsRequestBuilder;
 
     /**
      * @param  string  $trackingCode
