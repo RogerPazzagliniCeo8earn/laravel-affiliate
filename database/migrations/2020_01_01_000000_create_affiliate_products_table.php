@@ -28,6 +28,7 @@ class CreateAffiliateProductsTable extends Migration
             $table->text('details_link');
             $table->decimal('price');
             $table->string('currency');
+            $table->bigInteger('checksum')->comment('crc32');
             $table->dateTime('last_updated_at')->nullable()->comment('provided by affiliate network');
             $table->timestamps();
 

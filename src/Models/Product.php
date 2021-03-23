@@ -31,6 +31,7 @@ class Product extends Model
         'details_link',
         'price',
         'currency',
+        'checksum',
         'last_updated_at',
     ];
 
