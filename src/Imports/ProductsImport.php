@@ -2,7 +2,6 @@
 
 namespace SoluzioneSoftware\LaravelAffiliate\Imports;
 
-use DateTime;
 use Exception;
 use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Database\Connection;
@@ -71,7 +70,11 @@ class ProductsImport extends AbstractImport
         $this->dbProducts = $this->connection
             ->table(static::resolveProductModelBinding()->getTable())
             ->where($feed->getForeignKey(), $feed->getKey())
-            ->get(['last_updated_at', 'product_id', 'updated_at']);
+            ->get([
+                'product_id',
+                'checksum',
+            ]);
+
         $this->chunkSize = (int) Config::get('affiliate.chunk_size', 1000);
     }
 
@@ -121,7 +124,15 @@ class ProductsImport extends AbstractImport
             if (!$mappedRow) {
                 continue;
             }
-            $product = array_merge($mappedRow, [$feedForeignKey => $feedKey]);
+
+            $product = array_merge(
+                $mappedRow,
+                [
+                    $feedForeignKey => $feedKey,
+                    'checksum' => crc32(json_encode($mappedRow)),
+                ]
+            );
+
             $res = $this->processRow($product);
             if ($res === true) {
                 $newProducts[] = $product;
@@ -203,15 +214,7 @@ class ProductsImport extends AbstractImport
      */
     protected function rowWasUpdated(array $new, array $old): bool
     {
-        return (
-                empty($new['last_updated_at'])
-                || empty($old['last_updated_at'])
-                || new DateTime($new['last_updated_at']) > new DateTime($old['last_updated_at'])
-            )
-            && ( // check if product is already imported
-                empty($old['updated_at'])
-                || $this->feed->imported_at->greaterThanOrEqualTo(new DateTime($old['updated_at']))
-            );
+        return $new['checksum'] !== $old['checksum'];
     }
 
     /**
@@ -261,6 +264,7 @@ class ProductsImport extends AbstractImport
             'details_link',
             'price',
             'currency',
+            'checksum',
             'last_updated_at',
         ]);
     }
