@@ -15,6 +15,7 @@ use SoluzioneSoftware\LaravelAffiliate\Objects\CommissionRate;
 use SoluzioneSoftware\LaravelAffiliate\Objects\Product;
 use SoluzioneSoftware\LaravelAffiliate\Objects\Program;
 use SoluzioneSoftware\LaravelAffiliate\Objects\Transaction;
+use SoluzioneSoftware\LaravelAffiliate\Requests\NetworkAdvertisersRequestBuilder;
 use SoluzioneSoftware\LaravelAffiliate\Requests\NetworkProductsRequestBuilder;
 use SoluzioneSoftware\LaravelAffiliate\Requests\NetworkTransactionsRequestBuilder;
 
@@ -93,6 +94,14 @@ abstract class AbstractNetwork implements Network
      * @return string
      */
     abstract public static function getTrackingUrl(string $trackingCode, array $params = []): string;
+
+    /**
+     * @inheritDoc
+     */
+    public static function advertisers(): NetworkAdvertisersRequestBuilder
+    {
+        return new NetworkAdvertisersRequestBuilder(new static());
+    }
 
     /**
      * @param  string  $key
