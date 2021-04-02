@@ -2,7 +2,16 @@
 
 return [
     'db' => [
-        'connection' => 'mysql',
+        /*
+        |--------------------------------------------------------------------------
+        | Database Connection Name
+        |--------------------------------------------------------------------------
+        |
+        | Null or database connection name. If null, default connection will be used.
+        |
+        */
+        'connection' => null,
+
         'tables' => [
             'advertisers' => 'advertisers',
             'feeds' => 'feeds',
