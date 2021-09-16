@@ -9,7 +9,6 @@ use Maatwebsite\Excel\Concerns\OnEachRow;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Row;
-use SoluzioneSoftware\LaravelAffiliate\Models\Feed;
 use SoluzioneSoftware\LaravelAffiliate\Traits\ResolvesBindings;
 
 class FeedsImport extends AbstractImport implements WithHeadingRow, OnEachRow, ToCollection
@@ -47,23 +46,22 @@ class FeedsImport extends AbstractImport implements WithHeadingRow, OnEachRow, T
 
     /**
      * @inheritDoc
-     * @throws BindingResolutionException
      * @throws Exception
      */
     public function collection(Collection $collection)
     {
-        static::resolveFeedModelBinding()::query()
-            ->where('network', $this->network->getKey())
-            ->get()
-            ->each(function (Feed $feed) use ($collection) {
-                $isEmpty = $collection
-                    ->where('feed_id', $feed->feed_id)
-                    ->isEmpty();
-
-                if ($isEmpty) {
-                    $feed->products()->delete();
-                    $feed->delete();
-                }
-            });
+        // static::resolveFeedModelBinding()::query()
+        //     ->where('network', $this->network->getKey())
+        //     ->get()
+        //     ->each(function (Feed $feed) use ($collection) {
+        //         $isEmpty = $collection
+        //             ->where('feed_id', $feed->feed_id)
+        //             ->isEmpty();
+        //
+        //         if ($isEmpty) {
+        //             $feed->products()->delete();
+        //             $feed->delete();
+        //         }
+        //     });
     }
 }
