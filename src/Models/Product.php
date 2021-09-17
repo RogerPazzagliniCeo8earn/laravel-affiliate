@@ -2,6 +2,7 @@
 
 namespace SoluzioneSoftware\LaravelAffiliate\Models;
 
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Config;
@@ -21,6 +22,7 @@ use Laravel\Scout\Searchable;
 class Product extends Model
 {
     use Searchable;
+    use SoftDeletes;
 
     protected $fillable = [
         'feed_id',

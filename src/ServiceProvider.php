@@ -38,6 +38,7 @@ class ServiceProvider extends BaseServiceProvider
     {
         $this->loadMigrationsFrom(__DIR__.'/../database/migrations/2020_01_01_000000_create_affiliate_feeds_table.php');
         $this->loadMigrationsFrom(__DIR__.'/../database/migrations/2020_01_01_000000_create_affiliate_products_table.php');
+        $this->loadMigrationsFrom(__DIR__.'/../database/migrations/2021_09_17_000000_add_deleted_at_column_to_affiliate_products_table.php');
     }
 
     private function console()

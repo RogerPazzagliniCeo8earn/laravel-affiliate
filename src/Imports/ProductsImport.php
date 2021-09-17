@@ -345,7 +345,11 @@ class ProductsImport extends AbstractImport
 
                 $deleted = $this->connection->table(static::resolveProductModelBinding()->getTable())
                     ->whereIn(static::resolveProductModelBinding()->getKeyName(), $toDeleteKeys)
-                    ->delete();
+                    ->update(
+                        [
+                            static::resolveProductModelBinding()->getDeletedAtColumn() => static::resolveProductModelBinding()->freshTimestamp(),
+                        ]
+                    );
 
                 if ($fails = $toDeleteKeys->count() - $deleted !== 0) {
                     Log::info("$fails products weren't deleted");
