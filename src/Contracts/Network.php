@@ -38,11 +38,26 @@ interface Network
     public static function transactions(): NetworkTransactionsRequestBuilder;
 
     /**
-     * @param  string  $trackingCode
+     * @param  string  $advertiser
+     * @param  string|null  $trackingCode
      * @param  array  $params
      * @return string
      */
-    public static function getTrackingUrl(string $trackingCode, array $params = []): string;
+    public static function getTrackingUrl(string $advertiser, ?string $trackingCode = null, array $params = []): string;
+
+    /**
+     * @param  string  $advertiser
+     * @param  string  $product
+     * @param  string|null  $trackingCode
+     * @param  array  $params
+     * @return string
+     */
+    public static function getProductTrackingUrl(
+        string $advertiser,
+        string $product,
+        ?string $trackingCode = null,
+        array $params = []
+    ): string;
 
     /**
      * @param  string[]|null  $programs
