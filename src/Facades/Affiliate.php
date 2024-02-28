@@ -9,6 +9,7 @@ use SoluzioneSoftware\LaravelAffiliate\Contracts\NetworkWithProductFeeds;
 use SoluzioneSoftware\LaravelAffiliate\Models\Feed;
 use SoluzioneSoftware\LaravelAffiliate\Requests\CommissionRatesRequestBuilder;
 use SoluzioneSoftware\LaravelAffiliate\Requests\NetworkCommissionRatesRequestBuilder;
+use SoluzioneSoftware\LaravelAffiliate\Requests\NetworkProgramsRequestBuilder;
 use SoluzioneSoftware\LaravelAffiliate\Requests\NetworkTransactionsRequestBuilder;
 use SoluzioneSoftware\LaravelAffiliate\Requests\ProductsRequestBuilder;
 use SoluzioneSoftware\LaravelAffiliate\Requests\TransactionsRequestBuilder;
@@ -19,6 +20,7 @@ use SoluzioneSoftware\LaravelAffiliate\Requests\TransactionsRequestBuilder;
  * @method static Network resolveNetwork(string $key)
  * @method static CommissionRatesRequestBuilder commissionRates()
  * @method static NetworkCommissionRatesRequestBuilder networkCommissionRates(Network $network)
+ * @method static NetworkProgramsRequestBuilder networkPrograms(Network $network)
  * @method static ProductsRequestBuilder products()
  * @method static TransactionsRequestBuilder transactions()
  * @method static NetworkTransactionsRequestBuilder networkTransactions(Network $network)

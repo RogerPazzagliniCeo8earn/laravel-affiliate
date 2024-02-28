@@ -22,6 +22,7 @@ use SoluzioneSoftware\LaravelAffiliate\Imports\ProductsImportWithProgress;
 use SoluzioneSoftware\LaravelAffiliate\Models\Feed;
 use SoluzioneSoftware\LaravelAffiliate\Requests\CommissionRatesRequestBuilder;
 use SoluzioneSoftware\LaravelAffiliate\Requests\NetworkCommissionRatesRequestBuilder;
+use SoluzioneSoftware\LaravelAffiliate\Requests\NetworkProgramsRequestBuilder;
 use SoluzioneSoftware\LaravelAffiliate\Requests\NetworkTransactionsRequestBuilder;
 use SoluzioneSoftware\LaravelAffiliate\Requests\ProductsRequestBuilder;
 use SoluzioneSoftware\LaravelAffiliate\Requests\TransactionsRequestBuilder;
@@ -120,6 +121,11 @@ class Affiliate
     public function networkCommissionRates(Network $network)
     {
         return new NetworkCommissionRatesRequestBuilder($network);
+    }
+
+    public function networkPrograms(Network $network)
+    {
+        return new NetworkProgramsRequestBuilder($network);
     }
 
     /**

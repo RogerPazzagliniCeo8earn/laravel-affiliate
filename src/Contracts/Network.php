@@ -6,6 +6,7 @@ use DateTime;
 use Illuminate\Support\Collection;
 use SoluzioneSoftware\LaravelAffiliate\Objects\Product;
 use SoluzioneSoftware\LaravelAffiliate\Requests\NetworkProductsRequestBuilder;
+use SoluzioneSoftware\LaravelAffiliate\Requests\NetworkProgramsRequestBuilder;
 use SoluzioneSoftware\LaravelAffiliate\Requests\NetworkTransactionsRequestBuilder;
 
 interface Network
@@ -24,6 +25,8 @@ interface Network
      * @return NetworkProductsRequestBuilder
      */
     public static function products(): NetworkProductsRequestBuilder;
+
+    public static function programs(): NetworkProgramsRequestBuilder;
 
     /**
      * @param  string  $id
@@ -95,6 +98,8 @@ interface Network
      * @return Product|null
      */
     public function executeGetProduct(string $id, ?string $trackingCode = null): ?Product;
+
+    public function executeProgramsRequest(): Collection;
 
     /**
      * @param  string[]|null  $programs

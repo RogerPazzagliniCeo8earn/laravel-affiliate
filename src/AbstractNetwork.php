@@ -16,6 +16,7 @@ use SoluzioneSoftware\LaravelAffiliate\Objects\Product;
 use SoluzioneSoftware\LaravelAffiliate\Objects\Program;
 use SoluzioneSoftware\LaravelAffiliate\Objects\Transaction;
 use SoluzioneSoftware\LaravelAffiliate\Requests\NetworkProductsRequestBuilder;
+use SoluzioneSoftware\LaravelAffiliate\Requests\NetworkProgramsRequestBuilder;
 use SoluzioneSoftware\LaravelAffiliate\Requests\NetworkTransactionsRequestBuilder;
 
 abstract class AbstractNetwork implements Network
@@ -59,6 +60,11 @@ abstract class AbstractNetwork implements Network
     public static function products(): NetworkProductsRequestBuilder
     {
         return new NetworkProductsRequestBuilder(new static());
+    }
+
+    public static function programs(): NetworkProgramsRequestBuilder
+    {
+        return new NetworkProgramsRequestBuilder(new static());
     }
 
     /**
